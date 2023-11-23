@@ -10,16 +10,14 @@
 (define BACKGROUND (rectangle 1920 1080 "solid" "blue"))
 (define placeholder_rec (rectangle 150 50 "outline" (pen "white" 5 "solid" "round" "bevel")))
 (define PL_BOX (rectangle 400 300 "outline" (pen "white" 10 "solid" "round" "bevel")))
+(define BS_SPRITE_POSITION (make-posn 600 300))
+(define PL_BOX_POSITION (make-posn 700 800))
+(define ATK_BOX_POSITION (make-posn 500 1000))
+(define HEAL_BOX_POSITION (make-posn 900 1000))
+(define LP_POSITION_BO  (make-posn 700 70))
+(define LP_POSITION_PL (make-posn 700 1000))
 
-(define HP_SPRITE_PL_INITIAL 
-    (beside
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")))
-
-(define HP_SPRITE_B_INITIAL (above (beside
+(define HP_SPRITE_10 (above (beside
           (circle 20 "solid" "red")
           (circle 20 "solid" "red")
           (circle 20 "solid" "red")
@@ -31,6 +29,79 @@
           (circle 20 "solid" "red")
           (circle 20 "solid" "red")
           (circle 20 "solid" "red"))))
+
+(define HP_SPRITE_9 (above (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))
+       (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))))
+
+(define HP_SPRITE_8 (above (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))
+       (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))))
+
+(define HP_SPRITE_7 (above (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))
+       (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))))
+
+(define HP_SPRITE_6 (above (beside
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red")
+          (circle 20 "solid" "red"))
+                       (circle 20 "solid" "red")))
+
+(define HP_SPRITE_5
+    (beside
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")))
+
+(define HP_SPRITE_4 
+    (beside
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       ))
+
+(define HP_SPRITE_3
+    (beside
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")
+       ))
+
+(define HP_SPRITE_2
+    (beside
+       (circle 20 "solid" "red")
+       (circle 20 "solid" "red")))
+
+(define HP_SPRITE_1 (circle 20 "solid" "red"))
+
+
 
 (define KNIFE_SPRITE (bitmap/file "../resources/knife.png"))
 (define BALL_SPRITE  (bitmap/file "../resources/ball.png"))
@@ -45,28 +116,24 @@
    (list PL_SPRITE
          BS_SPRITE_N
          PL_BOX
-         HP_SPRITE_PL_INITIAL
-         HP_SPRITE_B_INITIAL
+         HP_SPRITE_PL_5
+         HP_SPRITE_B_10
          placeholder_rec
          placeholder_rec)
    (list INITIAL_PLAYER_POS
-         (make-posn 600 300)
-         (make-posn 700 800)
-         (make-posn 700 1000)
-         (make-posn 700 70)
-         (make-posn 500 1000)
-         (make-posn 900 1000))
+         BS_SPRITE_POSITION
+         PL_BOX_POSITION
+         LP_POSITION_PL
+         LP_POSITION_BO
+         ATK_BOX_POSITION
+         HEAL_BOX_POSITION
+         )
    BACKGROUND))
 
 
 (define-struct none [] )
 (define NONE (make-none))
 
-; an hp_general is a structure: (make-hp_general images positions)
-;   where:
-;   - images: List<Image>
-;   - positions: List<Posn>
-; interpretation: a structure that describes the hp of some sprite
 ;--------------------------------------------------------------------------------------
 
 ; a player is a structure :(make-player sprite hp position)
@@ -129,14 +196,96 @@
 
 ;; Data examples
 
-(define INITIAL_APP_STATE (make-appState INITIAL_CANVAS INITIAL_PLAYER NONE "boss" 10 #true))
-;(define AP2 (make-appState INITIAL_CANVAS INITIAL_PLAYER "boss" 10 #true))
-;(define AP3 (make-appState INITIAL_CANVAS INITIAL_PLAYER "boss" 10 #true))
+(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER NONE "boss" 10 #true))
+;(define AP2 (make-appState BACKGROUND INITIAL_PLAYER "boss" 10 #true))
+;(define AP3 (make-appState BACKGROUND INITIAL_PLAYER "boss" 10 #true))
 
 ;--------------------------------------------------------------------------------------
 
+;draw-lp: Number -> Image
+; draws a certain `n` of images to display 
+; header: (define (draw-lp n) HP_SPRITE_PL_INITIAL)
+
+(define (draw-lp n)
+  (cond
+    [(= n 1) HP_SPRITE_1]
+    [(= n 2) HP_SPRITE_2]
+    [(= n 3) HP_SPRITE_3]
+    [(= n 4) HP_SPRITE_4]
+    [(= n 5) HP_SPRITE_5]
+    [(= n 6) HP_SPRITE_6]
+    [(= n 7) HP_SPRITE_7]
+    [(= n 8) HP_SPRITE_8]
+    [(= n 9) HP_SPRITE_9]
+    [else HP_SPRITE_10]))
+
+; drawTurn: as -> Image
+; draws the appstate on the boss' or player's turn
+; header: (define (drawTurn as) INITIAL_CANVAS)
+
+;; Template
+;(define (drawTurn as)
+;  ... (draw-lp (player-hp (appState-p as))) ...
+;  ... (draw-lp (appState-boss as)) ...
+;  ... (draw-entity (appState-e as)) ...
+;  ... PL_SPRITE ...
+;  ... BS_SPRITE_N ...
+;  ... PL_BOX ...
+;  ... placeholder_rec ...
+;  ... (player-position (appState-p as)) ...
+;) 
+
+
+(define (drawTurn as)
+   (place-images
+    (list PL_SPRITE
+          BS_SPRITE_N
+          PL_BOX
+          (draw-lp (player-hp (appState-p as)))
+          (draw-lp (appState-boss as))
+          placeholder_rec
+          placeholder_rec)
+    (list (player-position (appState-p as))
+          BS_SPRITE_POSITION
+          PL_BOX_POSITION
+          LP_POSITION_PL
+          LP_POSITION_BO
+          ATK_BOX_POSITION
+          HEAL_BOX_POSITION
+    BACKGROUND)))
+
+
+
+
 ; drawAppState: appState -> Image
-; 
+; display the appState on the scene as an image
+; header: (define (drawAppState as) BACKGROUND)
+
+(check-expect (drawAppState INITIAL_APP_STATE) INITIAL_CANVAS)
+(check-expect (drawAppState (make-appState BACKGROUND PL1 BALL "boss" 8 #true))
+              (place-images
+               (list PL_SPRITE
+                     BS_SPRITE_N
+                     PL_BOX
+                     (draw-lp (player-hp PL1))
+                     (draw-lp 8)
+                     placeholder_rec
+                     placeholder_rec)
+               (list (player-position PL1)
+                     BS_SPRITE_POSITION
+                      PL_BOX_POSITION
+                      LP_POSITION_PL
+                      LP_POSITION_BO
+                      ATK_BOX_POSITION
+                      HEAL_BOX_POSITION
+               BACKGROUND)))
+
+;; template
+(define (drawAppState as)
+  (cond
+    [(or (= (as-s) "boss") (= (as-s) "player")) (drawTurn as)]
+    [(or (= (as-s) "player-attack") (= (as-s) "player-heal")) ]
+    ))
 
 ; handle-key: appState -> appState
 ;
