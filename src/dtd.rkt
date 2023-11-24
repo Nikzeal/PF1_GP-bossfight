@@ -1,7 +1,7 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-advanced-reader.ss" "lang")((modname dtd2) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
-  (require mrlib/gif)
+#reader(lib "htdp-advanced-reader.ss" "lang")((modname dtd) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+(require mrlib/gif)
 (require 2htdp/image)
 (require 2htdp/universe)
 
@@ -218,10 +218,10 @@
 
 ;--------------------------------------------------------------------------------------
 
-;draw-lp: Number -> Image
+; draw-lp: Number -> Image
 ; draws a certain `n` of images to display 
 ; header: (define (draw-lp n) HP_SPRITE_PL_INITIAL)
-;(build-list 5 (lambda (n) (circle 10 "solid" "red")))
+; (build-list 5 (lambda (n) (circle 10 "solid" "red")))
 
 (define (draw-lp n)
   (cond
@@ -241,16 +241,16 @@
 ; header: (define (drawTurn as) INITIAL_CANVAS)
 
 ;; Template
-;(define (drawTurn as)
-;  ... (draw-lp (player-hp (appState-p as))) ...
-;  ... (draw-lp (appState-boss as)) ...
-;  ... (draw-entity (appState-e as)) ...
-;  ... PL_SPRITE ...
-;  ... BS_SPRITE_N ...
-;  ... PL_BOX ...
-;  ... placeholder_rec ...
-;  ... (player-position (appState-p as)) ...
-;) 
+; (define (drawTurn as)
+;   ... (draw-lp (player-hp (appState-p as))) ...
+;   ... (draw-lp (appState-boss as)) ...
+;   ... (draw-entity (appState-e as)) ...
+;   ... PL_SPRITE ...
+;   ... BS_SPRITE_N ...
+;   ... PL_BOX ...
+;   ... placeholder_rec ...
+;   ... (player-position (appState-p as)) ...
+; ) 
 
 
 (define (drawTurn as)
@@ -304,52 +304,92 @@
 
 ;--------------------------------------------------------------------------------------
 
-; handle-key: appState Key -> appState
-; checks for the turn and handles the key events based on it, if its the boss' turn the player can move right, left, up or down,
-; if its the player's turn it can move in two positions, which are the heal and attack box positions
+;;; ======== HANDLE-KEY ========
+
+;; INPUT/OUTPUT
+; signature: handle-key: appState Key -> appState
+; purpose:   checks for the turn and handles the key events based on it, if its the boss'
+;            turn the player can move right, left, up or down, if its the player's turn
+;            it can move in two positions, which are the heal and attack box positions
+; header:    (define (handle-key state key) INITIAL_APP_STATE)
+
+;; EXAMPLES
+(check-expect (handle-key INITIAL_APP_STATE "right")
+              (make-appState BACKGROUND INITIAL_PLAYER NONE "boss" 10 #true "right"))
+(check-expect (handle-key AP2 "left")
+              (make-appState BACKGROUND PL1 BALL "boss" 10 #true "left"))
+(check-expect (handle-key AP3 "up")
+              (make-appState BACKGROUND PL2 BALL "boss" 10 #true "up"))
+(check-expect (handle-key AP4 "right")
+              (make-appState BACKGROUND (make-player PL_SPRITE 5 HEAL_BOX_POSITION)
+                             NONE "player" 10 #false "still"))
+
+;; TEMPLATE
+; (define (handle-key state key)
+;   (cond
+;     [(string=? (appState-s state) "boss"  ) ... state ... key ...]
+;     [(string=? (appState-s state) "player") ... state ... key ...]
+;     [else                                   ... state ... key ...]))
+
+;; CODE
 (define (handle-key state key)
   (cond
-    [(string=? (appState-s state) "boss")   (boss-key state key)]
+    ; check if it is the boss turn   -> see boss-key function
+    [(string=? (appState-s state) "boss"  ) (boss-key state key)]
+    ; check if it is the player turn -> see player-key funcion
     [(string=? (appState-s state) "player") (player-key state key)]
     [else state]))
 
+;;; ======== BOSS-KEY ========
 
+;; INPUT/OUTPUT
+; signature: boss-key: appState Key -> appState
+; purpose:   handles the key events for the boss turn
+; header:    (define (boss-key state key) INITIAL_APP_STATE)
 
+;; TEMPLATE
+; (define (boss-key state key)
+;   (cond
+;    [(key=? key "right") ... state ...]
+;    [(key=? key "left" ) ... state ...]
+;    [(key=? key "up"   ) ... state ...]
+;    [(key=? key "down" ) ... state ...]
+;    [else                ... state ...]))
 
-; boss-key: appState Key -> appState
+;; CODE
 (define (boss-key state key)
   (cond
+    ; checks if the pressed key is "right" and return movement as "right"
     [(key=? key "right")
      (make-appState (appState-canvas state)
                     (appState-p state)
-                    ;(player-right (appState-p state))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     "right")]
+    ; checks if the pressed key is "left" and return movement as "left"
     [(key=? key "left")
      (make-appState (appState-canvas state)
                     (appState-p state)
-                    ;(player-left (appState-p state))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     "left")]
+    ; checks if the pressed key is "up" and return movement as "up"
     [(key=? key "up")
      (make-appState (appState-canvas state)
                     (appState-p state)
-                    ;(player-up (appState-p state))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     "up")]
+    ; checks if the pressed key is "down" and return movement as "down"
     [(key=? key "down")
      (make-appState (appState-canvas state)
                     (appState-p state)
-                    ;(player-down (appState-p state))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
@@ -357,9 +397,24 @@
                     "down")]
     [else state]))
 
-; player-key appstate Key -> appState
+;;; ======== PLAYER-KEY ========
+
+;; INPUT/OUTPUT
+; signature: player-key: appstate Key -> appState
+; purpose:   handles the key events for the player turn
+; header:    (define (player-key state key) INITIAL_APP_STATE)
+
+;; TEMPLATE
+; (define (player-key state key)
+;   (cond
+;     [(key=? key "left")  ... state ...]
+;     [(key=? key "right") ... state ...]
+;     [else                ... state ...]))
+
+;; CODE
 (define (player-key state key)
   (cond
+    ; check if the pressed key is "left" and place the player on the attack box
     [(key=? key "left")
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state)) ATK_BOX_POSITION)
@@ -368,6 +423,7 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
+    ; check if the pressed key is "right" and place the player on the heal box
     [(key=? key "right")
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state)) HEAL_BOX_POSITION)
@@ -380,21 +436,61 @@
 
 ;--------------------------------------------------------------------------------------
 
-; handle-release: appState Key -> appState
+;;; ======== HANDLE-RELEASE ========
+
+;; INPUT/OUTPUT
+; signature: handle-release: appState Key -> appState
+; purpose:   checks for the turn and handles the key events based on it, if its the boss'
+;            turn the player movement stops when releasing the key, if its the player's turn
+;            it does not do anything
+; header:    (define (handle-release state key) INITIAL_APP_STATE)
+
+;; EXAMPLES
+(check-expect (handle-release INITIAL_APP_STATE "right") INITIAL_APP_STATE)
+(check-expect (handle-release AP2 "left")                AP2)
+(check-expect (handle-release AP3 "up")                  AP3)
+(check-expect (handle-release AP4 "right")               AP4)
+
+;; TEMPLATE
+; (define (handle-release state key)
+;    (cond
+;     [(string=? (appState-s state) "boss") ... state ...]
+;     [else                                 ... state ...]))
+
+;; CODE
 (define (handle-release state key)
    (cond
+     ; check if it is the boss turn -> see boss-release
     [(string=? (appState-s state) "boss") (boss-release state key)]
     [else state]))
 
-; boss-release: appState Key -> appState
-; handles the moment when the user releases the key and changes `movement` to 'still'
+;;; ======== BOSS-RELEASE ========
+
+;; INPUT/OUTPUT
+; signature: boss-release: appState Key -> appState
+; purpose:   handles the moment when the user releases the key and changes `movement` to 'still'
+; header:    (define (boss-release state key) INITIAL_APP_STATE)
+
+;; TEMPLATE
+; (define (boss-release state key)
+;   (cond
+;     [(or
+;      (and (string=? key "left" ) (string=? (appState-movement state) "left" ))
+;      (and (string=? key "right") (string=? (appState-movement state) "right"))
+;      (and (string=? key "up"   ) (string=? (appState-movement state) "up"   ))
+;      (and (string=? key "down" ) (string=? (appState-movement state) "down" )))
+;           ... state ...]
+;     [else ... state ...]))
+
+;; CODE
 (define (boss-release state key)
   (cond
+    ; check if the pressed key correspond to the current movement and set it to "still"
     [(or
-     (and (string=? key "left") (string=? (appState-movement state) "left"))
+     (and (string=? key "left" ) (string=? (appState-movement state) "left" ))
      (and (string=? key "right") (string=? (appState-movement state) "right"))
-     (and (string=? key "up") (string=? (appState-movement state) "up"))
-     (and (string=? key "down") (string=? (appState-movement state) "down")))
+     (and (string=? key "up"   ) (string=? (appState-movement state) "up"   ))
+     (and (string=? key "down" ) (string=? (appState-movement state) "down" )))
      (make-appState (appState-canvas state)
                     (appState-p state)
                     (appState-e state)
@@ -406,30 +502,85 @@
 
 ;--------------------------------------------------------------------------------------
 
-; tick: appState -> appState
-; handles the movement of the player every tick so that in the boss' turn it can change position in the box,
-; while in the player's turn it can change position between the two attack and heal boxes
+;;; ======== TICK ========
 
+;; INPUT/OUTPUT
+; signature: tick: appState -> appState
+; purpose:   handles the movement of the player every tick so that in the boss' turn it
+;            can change position in the box, while in the player's turn it can change
+;            position between the two attack and heal boxes
+; header:    (define (tick state) INITIAL_APP_STATE)
+
+;; EXAMPLES
+(check-expect (tick INITIAL_APP_STATE) INITIAL_APP_STATE)
+(check-expect (tick AP2)               AP2)
+(check-expect (tick AP3)               AP3)
+(check-expect (tick AP4)               AP4)
+
+;; TEMPLATE
+; (define (tick state)
+;   (cond
+;     [(string=? (appState-s state) "boss"  ) ... state ...]
+;     [(string=? (appState-s state) "player") ... state ...]))
+
+;; CODE
 (define (tick state)
   (cond
-    [(string=? (appState-s state) "boss")   (boss-tick state)]
-    [(string=? (appState-s state) "player") (player-tick state)]))
+    ; check if it is the boss turn   -> see boss-tick
+    [(string=? (appState-s state) "boss"  ) (boss-tick state)]
+    ; check if it is the player turn -> see player-tick
+    [(string=? (appState-s state) "player") (player-tick state)]
+    [else state]))
 
-; boss-tick: appState player -> appState
-; when it's the boss' turn, checks if the player is in the borders of the box,
-; in that case it handles the movement normally, otherwise it changes the position to "still"
+;;; ======== BOSS-TICK ========
 
+;; INPUT/OUTPUT
+; signature: boss-tick: appState player -> appState
+; purpose:   when it's the boss' turn, checks if the player is in the borders of the box,
+;            in that case it handles the movement normally, otherwise it changes the position
+;            to "still"
+; header:    (define (boss-tick state) INITIAL_APP_STATE)
+
+;; TEMPLATE
+; (define (boss-tick state)
+;   (cond
+;     [(and (< 500 (posn-x (player-position (appState-p state))) 900)
+;           (< 450 (posn-y (player-position (appState-p state))) 750))
+;           ... state ...]
+;     [else ... state ...]))
+
+;; CODE
 (define (boss-tick state)
   (cond
-    [(and (< 500 (posn-x (player-position (appState-p state))) 900) (< 450 (posn-y (player-position (appState-p state))) 750))
-     (boss-tick-box state)]
-    [else (boss-tick-border state)]
-    ))
+    ; check if the player is inside the box  -> see boss-tick-box
+    [(and (< 500 (posn-x (player-position (appState-p state))) 900)
+          (< 450 (posn-y (player-position (appState-p state))) 750))
+          (boss-tick-box state)]
+    ; check if the player is outside the box -> see boss-tick-border
+    [else (boss-tick-border state)]))
 
-; boss-tick-box: appState -> appState
-; handles the movement of the player by looking at the movement in the structure
+;;; ======== BOSS-TICK-BOX ========
+
+;; INPUT/OUTPUT
+; signature: boss-tick-box: appState -> appState
+; purpose:   handles the movement of the player by looking at the movement in the structure
+; header:    (define (boss-tick-box state) INITIAL_APP_STATE)
+
+;; TEMPLATE
+; (define (boss-tick-box state)
+;   (cond
+;     [(string=? (appState-movement state) "left" ) ... state ...]
+;     [(string=? (appState-movement state) "right") ... state ...]
+;     [(string=? (appState-movement state) "up"   ) ... state ...]
+;     [(string=? (appState-movement state) "down" ) ... state ...]
+;     [(string=? (appState-movement state) "still") ... state ...]
+;     [else                                         ... state ....]))
+
+
+;; CODE
 (define (boss-tick-box state)
   (cond
+    ; check if movement is "left" -> see player-left
     [(string=? (appState-movement state) "left")
      (make-appState (appState-canvas state)
                     (player-left (appState-p state))
@@ -438,6 +589,7 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
+    ; check if movement is "right" -> see player-right
     [(string=? (appState-movement state) "right")
      (make-appState (appState-canvas state)
                     (player-right (appState-p state))
@@ -446,6 +598,7 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
+    ; check if movement is "up" -> see player-up
     [(string=? (appState-movement state) "up")
      (make-appState (appState-canvas state)
                     (player-up (appState-p state))
@@ -454,6 +607,7 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
+    ; check if movement is "down" -> see player-down
     [(string=? (appState-movement state) "down")
      (make-appState (appState-canvas state)
                     (player-down (appState-p state))
@@ -462,14 +616,112 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
+    ; check if movement is "still" and return the state unchanged
     [(string=? (appState-movement state) "still") state]
     [else state]))
 
-; boss-tick-player: appState player -> appState
-; changes the player's movement to `still` when the player reaches the box borders
+;;; ======== PLAYER-LEFT ========
+
+;; INPUT/OUTPUT
+; signature: player-left: player -> player
+; purpose:   changes the position of the player by 100/FRAME pixels to the left
+; header:    (define (player-left p) INITIAL_PLAYER)
+
+;; TEMPLATE
+; (define (player-left p) ... p ...)
+
+;; CODE
+(define (player-left p)
+  ; move the posn-x of the player position to the left, by decreasing it
+  (make-player PL_SPRITE
+               (player-hp p)
+               (make-posn (- (posn-x (player-position p)) (* BASE_SPEED FRAME))
+                          (posn-y (player-position p)))))
+
+;;; ======== PLAYER-RIGHT ========
+
+;; INPUT/OUTPUT
+; signature: player-right: player -> player
+; purpose:   changes the position of the player by 100/FRAME pixels to the right
+; header:    (define (player-right p) INITIAL_PLAYER)
+
+;; TEMPLATE
+; (define (player-right p) ... p ...)
+
+;; CODE
+(define (player-right p)
+  ; move the posn-x of the player position to the right, by increasing it
+  (make-player PL_SPRITE
+               (player-hp p)
+               (make-posn (+ (posn-x (player-position p)) (* BASE_SPEED FRAME))
+                          (posn-y (player-position p)))))
+
+;;; ======== PLAYER-UP ========
+
+;; INPUT/OUTPUT
+; signature: player-up: player -> player
+; purpose:   changes the position of the player by 100/FRAME pixels up
+; header:    (define (player-up p) INITIAL_PLAYER)
+
+;; TEMPLATE
+; (define (player-up p) ... p ...)
+
+;; CODE
+(define (player-up p)
+  ; move the posn-y of the player position up, by decreasing it
+  (make-player PL_SPRITE
+               (player-hp p)
+               (make-posn (posn-x (player-position p))
+                          (- (posn-y (player-position p)) (* BASE_SPEED FRAME)))))
+
+;;; ======== PLAYER-DOWN ========
+
+;; INPUT/OUTPUT
+; signature: player-down: player -> player
+; purpose:   changes the position of the player by 100/FRAME pixels down
+; header:    (define (player-down p) INITIAL_PLAYER)
+
+;; TEMPLATE
+; (define (player-down p) ... p ...)
+
+;; CODE
+(define (player-down p)
+  ; move the posn-y of the player position down, by increasing it
+  (make-player PL_SPRITE
+               (player-hp p)
+               (make-posn (posn-x (player-position p))
+                          (+ (posn-y (player-position p)) (* BASE_SPEED FRAME)))))
+
+;;; ======== BOSS-TICK-PLAYER ========
+
+;; INPUT/OUTPUT
+; signature: boss-tick-player: appState -> appState
+; purpose:   moves the player to the opposite border when the player reaches one of the borders
+; header:    (define (boss-tick-border state) INITIAL_APP_STATE)
+
+;; TEMPLATE
+; (define (boss-tick-border state)
+;   (cond
+;     [(and (<= (posn-x (player-position (appState-p state))) 500)
+;           (string=? (appState-movement state) "left" ))
+;           ... state ...]
+;     [(and (>= (posn-y (player-position (appState-p state))) 750)
+;           (string=? (appState-movement state) "down" ))
+;           ... state ...]
+;     [(and (>= (posn-x (player-position (appState-p state))) 900)
+;           (string=? (appState-movement state) "right"))
+;           ... state ...]
+;     [(and (<= (posn-y (player-position (appState-p state))) 450)
+;           (string=? (appState-movement state) "up"   ))
+;           ... state ...]
+;     [else ... state ...]))
+
+;; CODE
 (define (boss-tick-border state)
   (cond
-    [(and (<= (posn-x (player-position (appState-p state))) 500) (string=? (appState-movement state) "left"))
+    ; check if the player is against the left border, moves the player to the right border
+    [(and (<= (posn-x (player-position (appState-p state))) 500)
+          (string=? (appState-movement state) "left"))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
                                  (make-posn 890 (posn-y (player-position (appState-p state)))))
@@ -478,7 +730,9 @@
                     (appState-boss state)
                     (appState-running? state)
                     "left")]
-    [(and (>= (posn-y (player-position (appState-p state))) 750) (string=? (appState-movement state) "down"))
+    ; check if the player is against the bottom border, moves the player to the upper border
+    [(and (>= (posn-y (player-position (appState-p state))) 750)
+          (string=? (appState-movement state) "down"))
       (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
                                  (make-posn (posn-x (player-position (appState-p state))) 460))
@@ -487,7 +741,9 @@
                     (appState-boss state)
                     (appState-running? state)
                     "down")]
-    [(and (>= (posn-x (player-position (appState-p state))) 900) (string=? (appState-movement state) "right"))
+    ; check if the player is against the right border, moves the player to the left border
+    [(and (>= (posn-x (player-position (appState-p state))) 900)
+          (string=? (appState-movement state) "right"))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
                                  (make-posn 510 (posn-y (player-position (appState-p state)))))
@@ -496,7 +752,9 @@
                     (appState-boss state)
                     (appState-running? state)
                     "right")]
-    [(and (<= (posn-y (player-position (appState-p state))) 450) (string=? (appState-movement state) "up"))
+    ; check if the player is against the upper border, moves the player to the bottom border
+    [(and (<= (posn-y (player-position (appState-p state))) 450)
+          (string=? (appState-movement state) "up"))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
                                  (make-posn (posn-x (player-position (appState-p state))) 740))
@@ -506,36 +764,18 @@
                     (appState-running? state)
                     "up")]
     [else state]))
-; player-left: player -> player
-; changes the position of the player by 100/FRAME pixels to the left
-(define (player-left p)
-  (make-player PL_SPRITE
-               (player-hp p)
-               (make-posn (- (posn-x (player-position p)) (* BASE_SPEED FRAME)) (posn-y (player-position p)))))
 
-; player-right: player -> player
-; changes the position of the player by 100/FRAME pixels to the right
-(define (player-right p)
-  (make-player PL_SPRITE
-               (player-hp p)
-               (make-posn (+ (posn-x (player-position p)) (* BASE_SPEED FRAME)) (posn-y (player-position p)))))
-  
-; player-up: player -> player
-; changes the position of the player by 100/FRAME pixels up
-(define (player-up p)
-  (make-player PL_SPRITE
-               (player-hp p)
-               (make-posn (posn-x (player-position p)) (- (posn-y (player-position p)) (* BASE_SPEED FRAME)))))
-  
-; player-down: player -> player
-; changes the position of the player by 100/FRAME pixels down
-(define (player-down p)
-  (make-player PL_SPRITE
-               (player-hp p)
-               (make-posn (posn-x (player-position p)) (+ (posn-y (player-position p)) (* BASE_SPEED FRAME)))))
+;;; ======== PLAYER-TICK ========
 
-; player-tick: appState -> appState
-; when it's the player's turn, its tick state is still
+;; INPUT/OUTPUT
+; signature: player-tick: appState -> appState
+; purpose:   when it's the player's turn, its tick state is still
+; header:    (define (player-tick state) INITIAL_APP_STATE)
+
+;; TEMPLATE
+; (define (player-tick state) ... state ...)
+
+;; CODE
 (define (player-tick state)
   (make-appState (appState-canvas state)
                  (appState-p state)
@@ -592,7 +832,7 @@
 
  (big-bang INITIAL_APP_STATE
    (on-tick tick FRAME)
-   (on-tick manage-turn 5)
+   ; (on-tick manage-turn 5)
    (on-key handle-key)
    (on-release handle-release)
    (to-draw drawAppState)
