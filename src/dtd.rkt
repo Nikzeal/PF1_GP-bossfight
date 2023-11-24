@@ -7,15 +7,16 @@
 
 
 ;; Constants
-(define BACKGROUND (rectangle 1920 1080 "solid" "blue"))
+(define BACKGROUND (rectangle 1440 900 "solid" "black"))
 (define placeholder_rec (rectangle 150 50 "outline" (pen "white" 5 "solid" "round" "bevel")))
 (define PL_BOX (rectangle 400 300 "outline" (pen "white" 10 "solid" "round" "bevel")))
-(define BS_SPRITE_POSITION (make-posn 600 300))
-(define PL_BOX_POSITION (make-posn 700 800))
-(define ATK_BOX_POSITION (make-posn 500 1000))
-(define HEAL_BOX_POSITION (make-posn 900 1000))
+(define BS_SPRITE_POSITION (make-posn 500 200))
+(define PL_BOX_POSITION (make-posn 700 600))
+(define ATK_BOX_POSITION (make-posn 500 800))
+(define HEAL_BOX_POSITION (make-posn 900 800))
 (define LP_POSITION_BO  (make-posn 700 70))
-(define LP_POSITION_PL (make-posn 700 1000))
+(define LP_POSITION_PL (make-posn 700 800))
+(define INITIAL_PLAYER_POS (make-posn 700 600))
 
 (define HP_SPRITE_10 (above (beside
           (circle 20 "solid" "red")
@@ -101,23 +102,21 @@
 
 (define HP_SPRITE_1 (circle 20 "solid" "red"))
 
-
-
 (define KNIFE_SPRITE (bitmap/file "../resources/knife.png"))
 (define BALL_SPRITE  (bitmap/file "../resources/ball.png"))
 (define ARROW_SPRITE (bitmap/file "../resources/arrow.png"))
 (define SWORD_SPRITE (bitmap/file "../resources/sword.png"))
 (define PL_SPRITE    (scale 0.4 (bitmap/file "../resources/player.png")))
-(define BS_SPRITE_N  (scale 1.4 (bitmap/file "../resources/normal.png")))
+(define BS_SPRITE_N  (scale 1.2 (bitmap/file "../resources/normal.png")))
 (define BS_SPRITE_R  (bitmap/file "../resources/rage.png"))
-(define INITIAL_PLAYER_POS (make-posn 700 800))
+
 
 (define INITIAL_CANVAS (place-images
    (list PL_SPRITE
          BS_SPRITE_N
          PL_BOX
-         HP_SPRITE_PL_5
-         HP_SPRITE_B_10
+         HP_SPRITE_5
+         HP_SPRITE_10
          placeholder_rec
          placeholder_rec)
    (list INITIAL_PLAYER_POS
@@ -205,6 +204,7 @@
 ;draw-lp: Number -> Image
 ; draws a certain `n` of images to display 
 ; header: (define (draw-lp n) HP_SPRITE_PL_INITIAL)
+;(build-list 5 (lambda (n) (circle 10 "solid" "red")))
 
 (define (draw-lp n)
   (cond
@@ -251,8 +251,8 @@
           LP_POSITION_PL
           LP_POSITION_BO
           ATK_BOX_POSITION
-          HEAL_BOX_POSITION
-    BACKGROUND)))
+          HEAL_BOX_POSITION)
+    BACKGROUND))
 
 
 
@@ -277,14 +277,15 @@
                       LP_POSITION_PL
                       LP_POSITION_BO
                       ATK_BOX_POSITION
-                      HEAL_BOX_POSITION
-               BACKGROUND)))
+                      HEAL_BOX_POSITION)
+               BACKGROUND))
 
 ;; template
 (define (drawAppState as)
   (cond
-    [(or (= (as-s) "boss") (= (as-s) "player")) (drawTurn as)]
-    [(or (= (as-s) "player-attack") (= (as-s) "player-heal")) ]
+    [(or (string=? (appState-s as) "boss") (string=? (appState-s as) "player")) (drawTurn as)]
+    [else (error "not the expected state")]
+    ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (drawAction as)]
     ))
 
 ; handle-key: appState -> appState
@@ -293,12 +294,12 @@
 ; quit?: appState -> appState
 ;
 
-; (big-bang INITIAL_CANVAS
+ (big-bang INITIAL_APP_STATE
 ;   (on-tick tick-expr rate-expr)
 ;   (on-key handle-key)
-;   (to-draw drawAppState)
+   (to-draw drawAppState)
 ;   (stop-when quit?)
-;   )
+   )
 
  
  
