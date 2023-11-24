@@ -196,8 +196,9 @@
 ;; Data examples
 
 (define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER NONE "boss" 10 #true))
-;(define AP2 (make-appState BACKGROUND INITIAL_PLAYER "boss" 10 #true))
-;(define AP3 (make-appState BACKGROUND INITIAL_PLAYER "boss" 10 #true))
+(define AP2 (make-appState BACKGROUND PL1 BALL "boss" 10 #true))
+(define AP3 (make-appState BACKGROUND PL2 BALL "boss" 10 #true))
+(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false))
 
 ;--------------------------------------------------------------------------------------
 
@@ -254,9 +255,6 @@
           HEAL_BOX_POSITION)
     BACKGROUND))
 
-
-
-
 ; drawAppState: appState -> Image
 ; display the appState on the scene as an image
 ; header: (define (drawAppState as) BACKGROUND)
@@ -287,19 +285,35 @@
     [else (error "not the expected state")]
     ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (drawAction as)]
     ))
+;--------------------------------------------------------------------------------------
 
 ; handle-key: appState -> appState
 ;
 
-; quit?: appState -> appState
-;
+;--------------------------------------------------------------------------------------
+; quit? appState -> Boolean
+; checks if the application has quit or not, i.e. the player has won or lost
+; header: (define (quit? appState) #true)
+
+(check-expect (quit? INITIAL_APP_STATE) #false)
+(check-expect (quit? AP4) #true)
+
+;;Template
+;(define (quit? as)
+;  (cond
+;    [(= (appState-running? as) #true) ... #false ....]
+;    [else ... #true ...]))
+
+(define (quit? as)
+  (cond
+    [(appState-running? as) #false]
+    [else #true]))
 
  (big-bang INITIAL_APP_STATE
 ;   (on-tick tick-expr rate-expr)
 ;   (on-key handle-key)
    (to-draw drawAppState)
-;   (stop-when quit?)
-   )
+   (stop-when quit?))
 
  
  
