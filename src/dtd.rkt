@@ -335,23 +335,25 @@
 (define (handle-key state key)
   (cond
     ; check if it is the boss turn   -> see boss-key function
-    [(string=? (appState-s state) "boss"  ) (make-appState (appState-canvas state)
-                                            (appState-p state)
-                                            (appState-e state)
-                                            (appState-s state)
-                                            (appState-boss state)
-                                            (appState-running? state)
-                                            (boss-key key))]
+    [(string=? (appState-s state) "boss")
+     (make-appState (appState-canvas state)
+                    (appState-p state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (boss-key key))]
     ; check if it is the player turn -> see player-key funcion
-    [(string=? (appState-s state) "player") (make-appState (appState-canvas state)
-                                            (make-player PL_SPRITE
-                                                         (player-hp (appState-p state))
-                                                         (player-key key))
-                                            (appState-e state)
-                                            (appState-s state)
-                                            (appState-boss state)
-                                            (appState-running? state)
-                                            (appState-movement state))]
+    [(string=? (appState-s state) "player")
+     (make-appState (appState-canvas state)
+                    (make-player PL_SPRITE
+                                 (player-hp (appState-p state))
+                                 (player-key key))
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state))]
     [else state]))
 
 ;;; ======== BOSS-KEY ========
@@ -421,9 +423,9 @@
 
 ;; EXAMPLES
 (check-expect (handle-release INITIAL_APP_STATE "right") INITIAL_APP_STATE)
-(check-expect (handle-release AP2 "left")                AP2)
-(check-expect (handle-release AP3 "up")                  AP3)
-(check-expect (handle-release AP4 "right")               AP4)
+(check-expect (handle-release AP2               "left" ) AP2              )
+(check-expect (handle-release AP3               "up"   ) AP3              )
+(check-expect (handle-release AP4               "right") AP4              )
 
 ;; TEMPLATE
 ; (define (handle-release state key)
@@ -435,15 +437,22 @@
 (define (handle-release state key)
    (cond
      ; check if it is the boss turn -> see boss-release
-    [(string=? (appState-s state) "boss") (boss-release state key)]
+    [(string=? (appState-s state) "boss")
+     (make-appState (appState-canvas state)
+                    (appState-p state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (boss-release state key))]
     [else state]))
 
 ;;; ======== BOSS-RELEASE ========
 
 ;; INPUT/OUTPUT
-; signature: boss-release: appState Key -> appState
-; purpose:   handles the moment when the user releases the key and changes `movement` to 'still'
-; header:    (define (boss-release state key) INITIAL_APP_STATE)
+; signature: boss-release: appState Key -> String
+; purpose:   handles the moment when the user releases the key and changes `movement` to "still"
+; header:    (define (boss-release state key) "")
 
 ;; TEMPLATE
 ; (define (boss-release state key)
@@ -453,8 +462,8 @@
 ;      (and (string=? key "right") (string=? (appState-movement state) "right"))
 ;      (and (string=? key "up"   ) (string=? (appState-movement state) "up"   ))
 ;      (and (string=? key "down" ) (string=? (appState-movement state) "down" )))
-;           ... state ...]
-;     [else ... state ...]))
+;           ...]
+;     [else ...]))
 
 ;; CODE
 (define (boss-release state key)
@@ -465,14 +474,8 @@
      (and (string=? key "right") (string=? (appState-movement state) "right"))
      (and (string=? key "up"   ) (string=? (appState-movement state) "up"   ))
      (and (string=? key "down" ) (string=? (appState-movement state) "down" )))
-     (make-appState (appState-canvas state)
-                    (appState-p state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    "still")]
-    [else state]))
+          "still"]
+    [else "still"]))
 
 ;--------------------------------------------------------------------------------------
 
