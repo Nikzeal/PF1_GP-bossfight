@@ -444,38 +444,8 @@
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    (boss-release state key))]
+                    "still")]
     [else state]))
-
-;;; ======== BOSS-RELEASE ========
-
-;; INPUT/OUTPUT
-; signature: boss-release: appState Key -> String
-; purpose:   handles the moment when the user releases the key and changes `movement` to "still"
-; header:    (define (boss-release state key) "")
-
-;; TEMPLATE
-; (define (boss-release state key)
-;   (cond
-;     [(or
-;      (and (string=? key "left" ) (string=? (appState-movement state) "left" ))
-;      (and (string=? key "right") (string=? (appState-movement state) "right"))
-;      (and (string=? key "up"   ) (string=? (appState-movement state) "up"   ))
-;      (and (string=? key "down" ) (string=? (appState-movement state) "down" )))
-;           ...]
-;     [else ...]))
-
-;; CODE
-(define (boss-release state key)
-  (cond
-    ; check if the pressed key correspond to the current movement and set it to "still"
-    [(or
-     (and (string=? key "left" ) (string=? (appState-movement state) "left" ))
-     (and (string=? key "right") (string=? (appState-movement state) "right"))
-     (and (string=? key "up"   ) (string=? (appState-movement state) "up"   ))
-     (and (string=? key "down" ) (string=? (appState-movement state) "down" )))
-          "still"]
-    [else "still"]))
 
 ;--------------------------------------------------------------------------------------
 
