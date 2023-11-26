@@ -10,6 +10,10 @@
 (define BACKGROUND (rectangle 1440 900 "solid" "black"))
 (define placeholder_rec (rectangle 150 50 "outline" (pen "white" 5 "solid" "round" "bevel")))
 (define PL_BOX (rectangle 400 300 "outline" (pen "white" 10 "solid" "round" "bevel")))
+(define PL_BOX_LEFT 500)
+(define PL_BOX_RIGHT 900)
+(define PL_BOX_BOTTOM 750)
+(define PL_BOX_TOP 450)
 (define BS_SPRITE_POSITION (make-posn 500 200))
 (define PL_BOX_POSITION (make-posn 700 600))
 (define ATK_BOX_POSITION (make-posn 500 800))
@@ -534,7 +538,7 @@
     ; check if movement is "left" -> see player-left
     [(string=? (appState-movement state) "left")
      (make-appState (appState-canvas state)
-                    (player-left (appState-p state))
+                    (player-move (appState-p state) (appState-movement state) -)
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
@@ -543,7 +547,7 @@
     ; check if movement is "right" -> see player-right
     [(string=? (appState-movement state) "right")
      (make-appState (appState-canvas state)
-                    (player-right (appState-p state))
+                    (player-move (appState-p state) (appState-movement state) +)
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
@@ -552,7 +556,7 @@
     ; check if movement is "up" -> see player-up
     [(string=? (appState-movement state) "up")
      (make-appState (appState-canvas state)
-                    (player-up (appState-p state))
+                    (player-move (appState-p state) (appState-movement state) -)
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
@@ -561,93 +565,49 @@
     ; check if movement is "down" -> see player-down
     [(string=? (appState-movement state) "down")
      (make-appState (appState-canvas state)
-                    (player-down (appState-p state))
+                    (player-move (appState-p state) (appState-movement state) +)
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
-    ; check if movement is "still" and return the state unchanged
-    [(string=? (appState-movement state) "still") state]
     [else state]))
 
-;;; ======== PLAYER-LEFT ========
+;;; ======== PLAYER MOVE  ========
 
 ;; INPUT/OUTPUT
-; signature: player-left: player -> player
-; purpose:   changes the position of the player by 100/FRAME pixels to the left
-; header:    (define (player-left p) INITIAL_PLAYER)
+; signature: player-move: player movement [Number Number -> Number] -> player
+; purpose:   changes the position of the player by 100/FRAME pixels
+;            based on the movement `m` by increasing or decreasing its position based on the function `fun`
+; header:    (define (player-move p m fun) INITIAL_PLAYER)
 
 ;; TEMPLATE
-; (define (player-left p) ... p ...)
+;(define (player-move p m fun)
+;  (cond
+;    [(or (string=? m "right") (string=? m "left")) ... (player-position p) ...]
+;    [(or (string=? m "up") (string=? m "down")) ... (player-position p) ...]))
 
 ;; CODE
-(define (player-left p)
-  ; move the posn-x of the player position to the left, by decreasing it
-  (make-player PL_SPRITE
+(define (player-move p m fun)
+  (cond
+    [(or (string=? m "right") (string=? m "left"))
+     (make-player PL_SPRITE
                (player-hp p)
-               (make-posn (- (posn-x (player-position p)) (* BASE_SPEED FRAME))
-                          (posn-y (player-position p)))))
-
-;;; ======== PLAYER-RIGHT ========
-
-;; INPUT/OUTPUT
-; signature: player-right: player -> player
-; purpose:   changes the position of the player by 100/FRAME pixels to the right
-; header:    (define (player-right p) INITIAL_PLAYER)
-
-;; TEMPLATE
-; (define (player-right p) ... p ...)
-
-;; CODE
-(define (player-right p)
-  ; move the posn-x of the player position to the right, by increasing it
-  (make-player PL_SPRITE
-               (player-hp p)
-               (make-posn (+ (posn-x (player-position p)) (* BASE_SPEED FRAME))
-                          (posn-y (player-position p)))))
-
-;;; ======== PLAYER-UP ========
-
-;; INPUT/OUTPUT
-; signature: player-up: player -> player
-; purpose:   changes the position of the player by 100/FRAME pixels up
-; header:    (define (player-up p) INITIAL_PLAYER)
-
-;; TEMPLATE
-; (define (player-up p) ... p ...)
-
-;; CODE
-(define (player-up p)
-  ; move the posn-y of the player position up, by decreasing it
-  (make-player PL_SPRITE
+               (make-posn (fun (posn-x (player-position p)) (* BASE_SPEED FRAME))
+                          (posn-y (player-position p))))]
+    [(or (string=? m "up") (string=? m "down"))
+     (make-player PL_SPRITE
                (player-hp p)
                (make-posn (posn-x (player-position p))
-                          (- (posn-y (player-position p)) (* BASE_SPEED FRAME)))))
+                          (fun (posn-y (player-position p)) (* BASE_SPEED FRAME))))]))
 
-;;; ======== PLAYER-DOWN ========
 
-;; INPUT/OUTPUT
-; signature: player-down: player -> player
-; purpose:   changes the position of the player by 100/FRAME pixels down
-; header:    (define (player-down p) INITIAL_PLAYER)
-
-;; TEMPLATE
-; (define (player-down p) ... p ...)
-
-;; CODE
-(define (player-down p)
-  ; move the posn-y of the player position down, by increasing it
-  (make-player PL_SPRITE
-               (player-hp p)
-               (make-posn (posn-x (player-position p))
-                          (+ (posn-y (player-position p)) (* BASE_SPEED FRAME)))))
-
-;;; ======== BOSS-TICK-PLAYER ========
+;;; ======== BOSS-TICK-BORDER ========
 
 ;; INPUT/OUTPUT
-; signature: boss-tick-player: appState -> appState
-; purpose:   moves the player to the opposite border when the player reaches one of the borders
+; signature: boss-tick-border: appState -> appState
+; purpose:   moves the player by some pixels in the opposite direction of the border it goes into
+;            when the player reaches one of the borders of the PL_BOX
 ; header:    (define (boss-tick-border state) INITIAL_APP_STATE)
 
 ;; TEMPLATE
@@ -701,7 +661,7 @@
                     (appState-running? state)
                     (appState-movement state))]
     ; check if the player is against the upper border, moves the player to the bottom border
-    [(<= (posn-y (player-position (appState-p state))) 450)
+    [(string=? (appState-movement state) "up"   )
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
                                  (make-posn (posn-x (player-position (appState-p state))) 451))
