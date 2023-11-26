@@ -335,104 +335,78 @@
 (define (handle-key state key)
   (cond
     ; check if it is the boss turn   -> see boss-key function
-    [(string=? (appState-s state) "boss"  ) (boss-key state key)]
+    [(string=? (appState-s state) "boss"  ) (make-appState (appState-canvas state)
+                                            (appState-p state)
+                                            (appState-e state)
+                                            (appState-s state)
+                                            (appState-boss state)
+                                            (appState-running? state)
+                                            (boss-key key))]
     ; check if it is the player turn -> see player-key funcion
-    [(string=? (appState-s state) "player") (player-key state key)]
+    [(string=? (appState-s state) "player") (make-appState (appState-canvas state)
+                                            (make-player PL_SPRITE
+                                                         (player-hp (appState-p state))
+                                                         (player-key key))
+                                            (appState-e state)
+                                            (appState-s state)
+                                            (appState-boss state)
+                                            (appState-running? state)
+                                            (appState-movement state))]
     [else state]))
 
 ;;; ======== BOSS-KEY ========
 
 ;; INPUT/OUTPUT
-; signature: boss-key: appState Key -> appState
+; signature: boss-key: Key -> String
 ; purpose:   handles the key events for the boss turn
-; header:    (define (boss-key state key) INITIAL_APP_STATE)
+; header:    (define (boss-key state key) "")
 
 ;; TEMPLATE
-; (define (boss-key state key)
+; (define (boss-key key)
 ;   (cond
-;    [(key=? key "right") ... state ...]
-;    [(key=? key "left" ) ... state ...]
-;    [(key=? key "up"   ) ... state ...]
-;    [(key=? key "down" ) ... state ...]
-;    [else                ... state ...]))
+;    [(key=? key "right") ...]
+;    [(key=? key "left" ) ...]
+;    [(key=? key "up"   ) ...]
+;    [(key=? key "down" ) ...]
+;    [else                ...]))
 
 ;; CODE
-(define (boss-key state key)
+(define (boss-key key)
   (cond
     ; checks if the pressed key is "right" and return movement as "right"
-    [(key=? key "right")
-     (make-appState (appState-canvas state)
-                    (appState-p state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    "right")]
+    [(key=? key "right") "right"]
     ; checks if the pressed key is "left" and return movement as "left"
-    [(key=? key "left")
-     (make-appState (appState-canvas state)
-                    (appState-p state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    "left")]
+    [(key=? key "left")  "left" ]
     ; checks if the pressed key is "up" and return movement as "up"
-    [(key=? key "up")
-     (make-appState (appState-canvas state)
-                    (appState-p state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    "up")]
+    [(key=? key "up")    "up"   ]
     ; checks if the pressed key is "down" and return movement as "down"
-    [(key=? key "down")
-     (make-appState (appState-canvas state)
-                    (appState-p state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    "down")]
-    [else state]))
+    [(key=? key "down")  "down" ]
+    ; if no key is pressed, return the "still" state
+    [else                "still"]))
 
 ;;; ======== PLAYER-KEY ========
 
 ;; INPUT/OUTPUT
-; signature: player-key: appstate Key -> appState
+; signature: player-key: Key -> Number
 ; purpose:   handles the key events for the player turn
-; header:    (define (player-key state key) INITIAL_APP_STATE)
+; header:    (define (player-key state key) 0)
 
 ;; TEMPLATE
-; (define (player-key state key)
+; (define (player-key key)
 ;   (cond
-;     [(key=? key "left")  ... state ...]
-;     [(key=? key "right") ... state ...]
-;     [else                ... state ...]))
+;     [(key=? key "left")  ...]
+;     [(key=? key "right") ...]
+;     [else                ...]))
 
 ;; CODE
-(define (player-key state key)
+(define (player-key key)
   (cond
     ; check if the pressed key is "left" and place the player on the attack box
-    [(key=? key "left")
-     (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE (player-hp (appState-p state)) ATK_BOX_POSITION)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
+    [(key=? key "left")  ATK_BOX_POSITION]
     ; check if the pressed key is "right" and place the player on the heal box
-    [(key=? key "right")
-     (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE (player-hp (appState-p state)) HEAL_BOX_POSITION)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
-    [else state]))
+    [(key=? key "right") HEAL_BOX_POSITION]
+    ; if no key is pressed, return the "still" state
+    [else       "still"]))
 
 ;--------------------------------------------------------------------------------------
 
@@ -513,8 +487,12 @@
 
 ;; EXAMPLES
 (check-expect (tick INITIAL_APP_STATE) INITIAL_APP_STATE)
-(check-expect (tick AP2)               AP2)
-(check-expect (tick AP3)               AP3)
+(check-expect (tick AP2)               (make-appState BACKGROUND
+                                                      (make-player PL_SPRITE 3 (make-posn 600 749))
+                                                      BALL "boss" 10 #true "still"))
+(check-expect (tick AP3)               (make-appState BACKGROUND
+                                                      (make-player PL_SPRITE 3 (make-posn 501 850))
+                                                      BALL "boss" 10 #true "still"))
 (check-expect (tick AP4)               AP4)
 
 ;; TEMPLATE
@@ -720,49 +698,45 @@
 (define (boss-tick-border state)
   (cond
     ; check if the player is against the left border, moves the player to the right border
-    [(and (<= (posn-x (player-position (appState-p state))) 500)
-          (string=? (appState-movement state) "left"))
+    [(<= (posn-x (player-position (appState-p state))) 500)
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn 890 (posn-y (player-position (appState-p state)))))
+                                 (make-posn 501 (posn-y (player-position (appState-p state)))))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    "left")]
+                    (appState-movement state))]
     ; check if the player is against the bottom border, moves the player to the upper border
-    [(and (>= (posn-y (player-position (appState-p state))) 750)
-          (string=? (appState-movement state) "down"))
+    [(>= (posn-y (player-position (appState-p state))) 750)
       (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (posn-x (player-position (appState-p state))) 460))
+                                 (make-posn (posn-x (player-position (appState-p state))) 749))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    "down")]
+                    (appState-movement state))]
     ; check if the player is against the right border, moves the player to the left border
-    [(and (>= (posn-x (player-position (appState-p state))) 900)
-          (string=? (appState-movement state) "right"))
+    [(>= (posn-x (player-position (appState-p state))) 900)
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn 510 (posn-y (player-position (appState-p state)))))
+                                 (make-posn 899 (posn-y (player-position (appState-p state)))))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    "right")]
+                    (appState-movement state))]
     ; check if the player is against the upper border, moves the player to the bottom border
-    [(and (<= (posn-y (player-position (appState-p state))) 450)
-          (string=? (appState-movement state) "up"))
+    [(<= (posn-y (player-position (appState-p state))) 450)
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (posn-x (player-position (appState-p state))) 740))
+                                 (make-posn (posn-x (player-position (appState-p state))) 451))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    "up")]
+                    (appState-movement state))]
     [else state]))
 
 ;;; ======== PLAYER-TICK ========
