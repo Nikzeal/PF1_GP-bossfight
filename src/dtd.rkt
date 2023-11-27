@@ -119,7 +119,7 @@
 (define PL_HEIGHT (image-height PL_SPRITE))
 (define BS_SPRITE_N  (scale 1.2 (bitmap/file "../resources/normal.png")))
 (define BS_SPRITE_R  (bitmap/file "../resources/rage.png"))
-;(define PL_HITBOX (overlay PL_SPRITE (ellipse 40 60 "solid" "transparent")))
+
 
 (define INITIAL_CANVAS (place-images
    (list PL_SPRITE
@@ -522,9 +522,22 @@
     ; check if the player is inside the box  -> see boss-tick-box
     [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2)) (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))  (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
-          (boss-tick-box state)]
+          (make-appState (appState-canvas state)
+                    (boss-tick-box state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state))]
     ; check if the player is outside the box -> see boss-tick-border
-    [else (boss-tick-border state)]))
+    [else
+     (make-appState (appState-canvas state)
+                    (boss-tick-border state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state))]))
 
 ;;; ======== BOSS-TICK-BOX ========
 
@@ -546,23 +559,11 @@
   (cond
     ; check if movement is "left" or "up" and decrements the x or y position-> see player-move
     [(or (string=? (appState-movement state) "left") (string=? (appState-movement state) "up"))
-     (make-appState (appState-canvas state)
-                    (player-move (appState-p state) (appState-movement state) -)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
+     (player-move (appState-p state) (appState-movement state) -)]
     ; check if movement is "right" or "down" and increments the x or y position-> see player-move
     [(or (string=? (appState-movement state) "right") (string=? (appState-movement state) "down"))
-     (make-appState (appState-canvas state)
-                    (player-move (appState-p state) (appState-movement state) +)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
-    [else state]))
+     (player-move (appState-p state) (appState-movement state) +)]
+    [else (appState-p state)]))
 
 ;;; ======== PLAYER-MOVE  ========
 
@@ -623,45 +624,21 @@
   (cond
     ; check if the player is against the left border, moves the player x by 1 px before the left border
     [(<= (posn-x (player-position (appState-p state))) (+ PL_BOX_LEFT (/ PL_WIDTH 2)))
-     (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (add1 (+ PL_BOX_LEFT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state)))))
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
+     (make-player PL_SPRITE (player-hp (appState-p state))
+                  (make-posn (add1 (+ PL_BOX_LEFT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state)))))]
     ; check if the player is against the bottom border, moves the player y by 1 px before the bottom border
     [(>= (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))
-      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (posn-x (player-position (appState-p state))) (sub1 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))))
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
+     (make-player PL_SPRITE (player-hp (appState-p state))
+                  (make-posn (posn-x (player-position (appState-p state))) (sub1 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))))]
     ; check if the player is against the right border, moves the player x by 1 px before the right border
     [(>= (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
-     (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (sub1 (- PL_BOX_RIGHT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state)))))
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
+     (make-player PL_SPRITE (player-hp (appState-p state))
+                  (make-posn (sub1 (- PL_BOX_RIGHT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state)))))]
     ; check if the player is against the upper border, moves the player y by 1 px before the top border
     [(<= (posn-y (player-position (appState-p state))) (+ PL_BOX_TOP (/ PL_HEIGHT 2)))
-     (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (posn-x (player-position (appState-p state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2)))))
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
-    [else state]))
+     (make-player PL_SPRITE (player-hp (appState-p state))
+                  (make-posn (posn-x (player-position (appState-p state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2)))))]
+    [else (appState-p state)]))
 
 ;;; ======== PLAYER-TICK ========
 
