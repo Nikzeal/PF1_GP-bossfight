@@ -4,6 +4,7 @@
 (require mrlib/gif)
 (require 2htdp/image)
 (require 2htdp/universe)
+(require racket/place/distributed)
 
 
 ;; Constants
@@ -22,7 +23,8 @@
 (define LP_POSITION_PL (make-posn 700 800))
 (define INITIAL_PLAYER_POS (make-posn 700 600))
 (define FRAME 1/100)
-(define BASE_SPEED 400)
+(define TURN 20)
+(define BASE_SPEED 500)
 
 (define HP_SPRITE_10 (above (beside
           (circle 20 "solid" "red")
@@ -109,10 +111,12 @@
 (define HP_SPRITE_1 (circle 20 "solid" "red"))
 
 (define KNIFE_SPRITE (bitmap/file "../resources/knife.png"))
-(define BALL_SPRITE  (bitmap/file "../resources/ball.png"))
+(define BALL_SPRITE  (scale 0.3 (bitmap/file "../resources/ball.png")))
 (define ARROW_SPRITE (bitmap/file "../resources/arrow.png"))
 (define SWORD_SPRITE (bitmap/file "../resources/sword.png"))
-(define PL_SPRITE    (scale 0.4 (bitmap/file "../resources/player.png")))
+(define PL_SPRITE    (center-pinhole (scale 0.4  (bitmap/file "../resources/player.png"))))
+(define PL_WIDTH (image-width PL_SPRITE))
+(define PL_HEIGHT (image-height PL_SPRITE))
 (define BS_SPRITE_N  (scale 1.2 (bitmap/file "../resources/normal.png")))
 (define BS_SPRITE_R  (bitmap/file "../resources/rage.png"))
 ;(define PL_HITBOX (overlay PL_SPRITE (ellipse 40 60 "solid" "transparent")))
@@ -191,10 +195,6 @@
 ;       - "down"
 ;       - "still"
 
-; a collision-box is one of:
-;       - "player-box"
-;       - "none"
-
 
 ; an appState is a structure: (make-appState canvas p e s boss running?)
 ;  where:
@@ -215,12 +215,14 @@
 
 ;; Data examples
 
-(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER NONE "boss" 10 #true "still"))
+(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER BALL "boss" 10 #true "still"))
 (define AP2 (make-appState BACKGROUND PL1 BALL "boss" 10 #true "still"))
 (define AP3 (make-appState BACKGROUND PL2 BALL "boss" 10 #true "still"))
 (define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))
 
 ;--------------------------------------------------------------------------------------
+
+;;; ======== DRAW-LP ========
 
 ; draw-lp: Number -> Image
 ; draws a certain `n` of images to display 
@@ -240,12 +242,14 @@
     [(= n 9) HP_SPRITE_9]
     [else HP_SPRITE_10]))
 
-; drawTurn: as -> Image
+;;; ======== DRAW-TURN ========
+
+; draw-turn: as -> Image
 ; draws the appstate on the boss' or player's turn
 ; header: (define (drawTurn as) INITIAL_CANVAS)
 
-;; Template
-; (define (drawTurn as)
+;; TEMPLATE
+; (define (draw-turn as)
 ;   ... (draw-lp (player-hp (appState-p as))) ...
 ;   ... (draw-lp (appState-boss as)) ...
 ;   ... (draw-entity (appState-e as)) ...
@@ -256,8 +260,8 @@
 ;   ... (player-position (appState-p as)) ...
 ; ) 
 
-
-(define (drawTurn as)
+;; CODE
+(define (draw-turn as)
    (place-images
     (list PL_SPRITE
           BS_SPRITE_N
@@ -265,15 +269,20 @@
           (draw-lp (player-hp (appState-p as)))
           (draw-lp (appState-boss as))
           placeholder_rec
-          placeholder_rec)
+          placeholder_rec
+          ;entities
+          )
     (list (player-position (appState-p as))
           BS_SPRITE_POSITION
           PL_BOX_POSITION
           LP_POSITION_PL
           LP_POSITION_BO
           ATK_BOX_POSITION
-          HEAL_BOX_POSITION)
+          HEAL_BOX_POSITION
+          )
     BACKGROUND))
+
+;;; ======== DRAW-STATE ========
 
 ; drawAppState: appState -> Image
 ; display the appState on the scene as an image
@@ -298,12 +307,15 @@
                       HEAL_BOX_POSITION)
                BACKGROUND))
 
-;; template
+;; TEMPLATE
+
+
+;; CODE 
 (define (drawAppState as)
   (cond
-    [(or (string=? (appState-s as) "boss") (string=? (appState-s as) "player")) (drawTurn as)]
-    [else (error "not the expected state")]
-    ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (drawAction as)]
+    [(string=? (appState-s as) "boss") (draw-turn as)]
+    ;[else (draw-player)]
+    ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (draw-action as)]
     ))
 
 ;--------------------------------------------------------------------------------------
@@ -508,8 +520,8 @@
 (define (boss-tick state)
   (cond
     ; check if the player is inside the box  -> see boss-tick-box
-    [(and (< 500 (posn-x (player-position (appState-p state))) 900)
-          (< 450 (posn-y (player-position (appState-p state))) 750))
+    [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2)) (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
+          (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))  (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
           (boss-tick-box state)]
     ; check if the player is outside the box -> see boss-tick-border
     [else (boss-tick-border state)]))
@@ -524,19 +536,16 @@
 ;; TEMPLATE
 ; (define (boss-tick-box state)
 ;   (cond
-;     [(string=? (appState-movement state) "left" ) ... state ...]
-;     [(string=? (appState-movement state) "right") ... state ...]
-;     [(string=? (appState-movement state) "up"   ) ... state ...]
-;     [(string=? (appState-movement state) "down" ) ... state ...]
-;     [(string=? (appState-movement state) "still") ... state ...]
+;     [(or (string=? (appState-movement state) "left") (string=? (appState-movement state) "up")) ... state ...]
+;     [(or (string=? (appState-movement state) "right") (string=? (appState-movement state) "down")) ... state ...]
 ;     [else                                         ... state ....]))
 
 
 ;; CODE
 (define (boss-tick-box state)
   (cond
-    ; check if movement is "left" -> see player-left
-    [(string=? (appState-movement state) "left")
+    ; check if movement is "left" or "up" and decrements the x or y position-> see player-move
+    [(or (string=? (appState-movement state) "left") (string=? (appState-movement state) "up"))
      (make-appState (appState-canvas state)
                     (player-move (appState-p state) (appState-movement state) -)
                     (appState-e state)
@@ -544,26 +553,8 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
-    ; check if movement is "right" -> see player-right
-    [(string=? (appState-movement state) "right")
-     (make-appState (appState-canvas state)
-                    (player-move (appState-p state) (appState-movement state) +)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
-    ; check if movement is "up" -> see player-up
-    [(string=? (appState-movement state) "up")
-     (make-appState (appState-canvas state)
-                    (player-move (appState-p state) (appState-movement state) -)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
-    ; check if movement is "down" -> see player-down
-    [(string=? (appState-movement state) "down")
+    ; check if movement is "right" or "down" and increments the x or y position-> see player-move
+    [(or (string=? (appState-movement state) "right") (string=? (appState-movement state) "down"))
      (make-appState (appState-canvas state)
                     (player-move (appState-p state) (appState-movement state) +)
                     (appState-e state)
@@ -573,7 +564,7 @@
                     (appState-movement state))]
     [else state]))
 
-;;; ======== PLAYER MOVE  ========
+;;; ======== PLAYER-MOVE  ========
 
 ;; INPUT/OUTPUT
 ; signature: player-move: player movement [Number Number -> Number] -> player
@@ -630,41 +621,41 @@
 ;; CODE
 (define (boss-tick-border state)
   (cond
-    ; check if the player is against the left border, moves the player to the right border
-    [(<= (posn-x (player-position (appState-p state))) 500)
+    ; check if the player is against the left border, moves the player x by 1 px before the left border
+    [(<= (posn-x (player-position (appState-p state))) (+ PL_BOX_LEFT (/ PL_WIDTH 2)))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn 501 (posn-y (player-position (appState-p state)))))
+                                 (make-posn (add1 (+ PL_BOX_LEFT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state)))))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
-    ; check if the player is against the bottom border, moves the player to the upper border
-    [(>= (posn-y (player-position (appState-p state))) 750)
+    ; check if the player is against the bottom border, moves the player y by 1 px before the bottom border
+    [(>= (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))
       (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (posn-x (player-position (appState-p state))) 749))
+                                 (make-posn (posn-x (player-position (appState-p state))) (sub1 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
-    ; check if the player is against the right border, moves the player to the left border
-    [(>= (posn-x (player-position (appState-p state))) 900)
+    ; check if the player is against the right border, moves the player x by 1 px before the right border
+    [(>= (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn 899 (posn-y (player-position (appState-p state)))))
+                                 (make-posn (sub1 (- PL_BOX_RIGHT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state)))))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state))]
-    ; check if the player is against the upper border, moves the player to the bottom border
-    [(string=? (appState-movement state) "up"   )
+    ; check if the player is against the upper border, moves the player y by 1 px before the top border
+    [(<= (posn-y (player-position (appState-p state))) (+ PL_BOX_TOP (/ PL_HEIGHT 2)))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE (player-hp (appState-p state))
-                                 (make-posn (posn-x (player-position (appState-p state))) 451))
+                                 (make-posn (posn-x (player-position (appState-p state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2)))))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
@@ -692,30 +683,6 @@
                  (appState-running? state)
                  "still"))
 
-;--------------------------------------------------------------------------------------
-
-
-(define (manage-turn state)
-  (cond
-    [(string=? "player" (appState-s state))
-     (make-appState
-      (appState-canvas state)
-      (appState-p state)
-      (appState-e state)
-      "boss"
-      (appState-boss state)
-      (appState-running? state)
-      (appState-movement state))]
-    [(string=? "boss" (appState-s state))
-     (make-appState
-      (appState-canvas state)
-      (appState-p state)
-      (appState-e state)
-      "player"
-      (appState-boss state)
-      (appState-running? state)
-      (appState-movement state))]
-    [else state]))
 
 ;--------------------------------------------------------------------------------------
 
@@ -737,12 +704,14 @@
     [(appState-running? as) #false]
     [else #true]))
 
- (big-bang INITIAL_APP_STATE
+
+(big-bang INITIAL_APP_STATE
    (on-tick tick FRAME)
-   ; (on-tick manage-turn 5)
    (on-key handle-key)
    (on-release handle-release)
    (to-draw drawAppState)
+   ;(display-mode 'fullscreen)
+   ;(on-receive rec-expr)
    (stop-when quit?))
 
  
