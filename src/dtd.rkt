@@ -471,7 +471,8 @@
 ; signature: tick: appState -> appState
 ; purpose:   handles the movement of the player every tick so that in the boss' turn it
 ;            can change position in the box, while in the player's turn it can change
-;            position between the two attack and heal boxes
+;            position between the two attack and heal boxes. It changes from the boss turn
+;            to the player turn after 10 seconds.
 ; header:    (define (tick state) INITIAL_APP_STATE)
 
 ;; EXAMPLES
@@ -487,17 +488,30 @@
 ;; TEMPLATE
 ; (define (tick state)
 ;   (cond
-;     [(string=? (appState-s state) "boss"  ) ... state ...]
-;     [(string=? (appState-s state) "player") ... state ...]))
+;     [(>= (- (current-seconds) initial-time) 10) ... state ...]
+;     [(string=? (appState-s state) "boss"  )     ... state ...]
+;     [(string=? (appState-s state) "player")     ... state ...]
+;     [else                                       ... state ...]))
 
 ;; CODE
 (define (tick state)
   (cond
+    ; check if 10 seconds passed (the boss turn duration) and change the turn to "player"
+    [(>= (- (current-seconds) initial-time) 10)
+     (make-appState (appState-canvas state)
+                    (appState-p state)
+                    (appState-e state)
+                    "player"
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state))]
     ; check if it is the boss turn   -> see boss-tick
     [(string=? (appState-s state) "boss"  ) (boss-tick state)]
     ; check if it is the player turn -> see player-tick
     [(string=? (appState-s state) "player") (player-tick state)]
     [else state]))
+
+(define initial-time (current-seconds))
 
 ;;; ======== BOSS-TICK ========
 
@@ -522,7 +536,7 @@
     ; check if the player is inside the box  -> see boss-tick-box
     [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2)) (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))  (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
-          (make-appState (appState-canvas state)
+     (make-appState (appState-canvas state)
                     (boss-tick-box state)
                     (appState-e state)
                     (appState-s state)
