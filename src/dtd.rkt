@@ -25,90 +25,93 @@
 (define TURN 20)
 (define BASE_SPEED 600)
 (define ENTITY_SPEED 2000)
+(define PL_LP (scale 0.02 (bitmap/file "../resources/heart-pl.png")))
+(define BOSS_LP (scale 0.02(bitmap/file "../resources/heart-boss.png")))
+(define PL_HP (scale 1 (bitmap/file "../resources/heart.png")))   
 
 (define HP_SPRITE_10 (above (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)
        (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)))
 
 (define HP_SPRITE_9 (above (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)
        (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)))
 
 (define HP_SPRITE_8 (above (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)
        (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)))
 
 (define HP_SPRITE_7 (above (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)
        (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))))
+          BOSS_LP
+          BOSS_LP)))
 
 (define HP_SPRITE_6 (above (beside
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red")
-          (circle 20 "solid" "red"))
-                       (circle 20 "solid" "red")))
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP
+          BOSS_LP)
+          BOSS_LP))
 
 (define HP_SPRITE_5
     (beside
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")))
+       PL_LP
+       PL_LP
+       PL_LP
+       PL_LP
+       PL_LP))
 
 (define HP_SPRITE_4 
     (beside
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
+       PL_LP
+       PL_LP
+       PL_LP
+       PL_LP
        ))
 
 (define HP_SPRITE_3
     (beside
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")
+       PL_LP
+       PL_LP
+       PL_LP
        ))
 
 (define HP_SPRITE_2
     (beside
-       (circle 20 "solid" "red")
-       (circle 20 "solid" "red")))
+       PL_LP
+       PL_LP))
 
-(define HP_SPRITE_1 (circle 20 "solid" "red"))
+(define HP_SPRITE_1 PL_LP)
 
 (define KNIFE_SPRITE (bitmap/file "../resources/knife.png"))
 (define BALL_SPRITE  (scale 0.2 (bitmap/file "../resources/ball.png")))
@@ -121,6 +124,7 @@
 (define PL_HEIGHT (image-height PL_SPRITE))
 (define BS_SPRITE_N  (scale 1.2 (bitmap/file "../resources/normal.png")))
 (define BS_SPRITE_R  (bitmap/file "../resources/rage.png"))
+
 
 
 (define INITIAL_CANVAS (place-images
@@ -245,8 +249,10 @@
     (list PL_SPRITE
           BS_SPRITE_N
           PL_BOX
-          (draw-lp (player-hp (appState-p as)))
-          (draw-lp (appState-boss as))
+          ;(draw-lp (player-hp (appState-p as)))
+        PL_HP
+        PL_HP
+          ;(draw-lp (appState-boss as))
           placeholder_rec
           placeholder_rec
           ;entities
@@ -310,8 +316,10 @@
     (list PL_SPRITE
           BS_SPRITE_N
           PL_BOX
-          (draw-lp (player-hp (appState-p as)))
-          (draw-lp (appState-boss as))
+         ; (draw-lp (player-hp (appState-p as)))
+          ;(draw-lp (appState-boss as))
+        PL_HP
+        PL_HP
           placeholder_rec
           placeholder_rec)
     (list (player-position (appState-p as))
