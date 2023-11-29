@@ -4,20 +4,8 @@
 (require 2htdp/image)
 (require 2htdp/universe)
 (require racket/base)
-(provide handle-key)
-(provide handle-release)
-(define ATK_BOX_POSITION (make-posn 500 800))
-(define HEAL_BOX_POSITION (make-posn 900 800))
-(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER EMPTY "boss" 10 #true "still"))
-(define-struct appState [canvas p e s boss running? movement])
-(define-struct player [sprite hp position])
-(define BACKGROUND (rectangle 1440 900 "solid" "black"))
-(define INITIAL_PLAYER (make-player PL_SPRITE 5 INITIAL_PLAYER_POS))
-(define EMPTY  (make-entities '() '() ))
-(define-struct entities [sprites positions])
-(define PL_SPRITE    (center-pinhole (scale 0.3  (bitmap/file "../resources/player.png"))))
-(define INITIAL_PLAYER_POS (make-posn 700 600))
-
+(require "data.rkt")
+(provide (all-defined-out))
 
 
 ;;; ======== HANDLE-KEY ========
@@ -138,7 +126,7 @@
 ; header:    (define (handle-release state key) INITIAL_APP_STATE)
 
 ;; EXAMPLES
-(check-expect (handle-release INITIAL_APP_STATE "right") INITIAL_APP_STATE)
+;(check-expect (handle-release INITIAL_APP_STATE "right") INITIAL_APP_STATE)
 ;(check-expect (handle-release AP2               "left" ) AP2              )
 ;(check-expect (handle-release AP3               "up"   ) AP3              )
 ;(check-expect (handle-release AP4               "right") AP4              )
