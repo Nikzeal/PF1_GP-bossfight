@@ -40,8 +40,8 @@
 (define LP_POSITION_PL (make-posn 700 800))
 
 ; Ticks
+(define TICK 1/100)
 (define FRAME 1/100)
-(define TURN 20)
 
 ; Speed
 (define BASE_SPEED 600)
@@ -190,7 +190,7 @@
 
 ;--------------------------------------------------------------------------------------
 
-; an entities is a structure (make-entity sprites positions)
+; entities is a structure (make-entities sprites positions)
 ; Where:
 ;  - sprites is one of:
 ;      - '()
@@ -198,7 +198,7 @@
 ;  - positions is one of:
 ;      - '()
 ;      - (cons Posn List<Posn>)
-; interpretation: a list that represents all the entities' `sprites` at positions `positions` 
+; interpretation: two lists that represents all the entities' `sprites` at positions `positions` 
 (define-struct entities [sprites positions])
 ;; Data examples
 (define EMPTY  (make-entities '() '() ))
@@ -228,23 +228,24 @@
 ;                 just staying `still`
 
 ; an appState is a structure: (make-appState canvas p e s boss running?)
-;  where: - canvas     : Image
-;         - p          : player
-;         - e          : entities
-;         - s          : substate
-;         - boss       : Number
-;         - running?   : Boolean
-;         - movement   : movement
+;  where: - canvas      : Image
+;         - p           : player
+;         - e           : entities
+;         - s           : substate
+;         - boss        : Number
+;         - running?    : Boolean
+;         - movement    : movement
+;         - change-turn : Number
 ;interpretation: a structure that describes the state of the application displayed as a `canvas`
 ;                that initially contains a box with a player `p` inside, the image of the boss and the images
 ;                of the life points. The canvas gets updated by adding elements of the list `e` based on the `s` 
 ;                and the `boss` value. When wether the `p` or the boss has a lifepoints value of 0 the `running?`
 ;                is set to #false and the application quits. `movement` describes the current direction of
-;                the player `p`.
-(define-struct appState [canvas p e s boss running? movement])
+;                the player `p`. `change-turn` is a counter to keep track of the tick to call a specific function when 20 seconds pass.
+(define-struct appState [canvas p e s boss running? movement change-turn])
 
 ;; Data examples
-(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER EMPTY "boss" 10 #true "still"))
-(define AP2 (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "still"))
-(define AP3 (make-appState BACKGROUND PL2 KNIFES "boss" 10 #true "still"))
-(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))
+(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER EMPTY "boss" 10 #true "still" 0))
+;(define AP2 (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "still"))
+;(define AP3 (make-appState BACKGROUND PL2 KNIFES "boss" 10 #true "still"))
+;(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))

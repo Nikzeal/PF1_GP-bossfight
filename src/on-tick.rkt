@@ -10,8 +10,6 @@
 
 (provide (all-defined-out))
 
-;--------------------------------------------------------------------------------------
-
 ;;; ======== TICK ========
 
 ;; INPUT/OUTPUT
@@ -47,10 +45,25 @@
 (define (tick state)
   (cond
     ; check if it is the boss turn   -> see boss-tick
-    [(string=? (appState-s state) "boss"  ) (boss-tick state)]
+    [ (<  (appState-change-turn state) 500)
+     (make-appState (appState-canvas state)
+                    (boss-tick state)
+                    (entity-move state)
+                    "boss"
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    (add1 (appState-change-turn state)))]
     ; check if it is the player turn -> see player-tick
-    [(string=? (appState-s state) "player") (player-tick state)]
-    [else state]))
+    [else
+     (make-appState (appState-canvas state)
+                    (appState-p state)
+                    EMPTY
+                    "player"
+                    (appState-boss state)
+                    (appState-running? state)
+                    "still"
+                    (appState-change-turn state))]))
 
 ;;; ======== BOSS-TICK ========
 
@@ -79,26 +92,13 @@
           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
              (posn-y (player-position (appState-p state)))
              (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
-          (make-appState (appState-canvas state)
                     (make-player PL_SPRITE
                                  (player-hp (appState-p state))
-                                 (boss-tick-box state))
-                    (entity-move state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]
+                                 (boss-tick-box state))]
     ; check if the player is outside the box -> see boss-tick-border
-    [else
-     (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE
-                                 (player-hp (appState-p state))
-                                 (boss-tick-border state))
-                    (entity-move state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state))]))
+    [else (make-player PL_SPRITE
+                       (player-hp (appState-p state))
+                       (boss-tick-border state))]))
 
 ;;; ======== ENTITY-MOVE  ========
 
@@ -264,23 +264,3 @@
     [(<= (posn-y (player-position (appState-p state))) (+ PL_BOX_TOP (/ PL_HEIGHT 2)))
      (make-posn (posn-x (player-position (appState-p state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2))))]
     [else (player-position (appState-p state))]))
-
-;;; ======== PLAYER-TICK ========
-
-;; INPUT/OUTPUT
-; signature: player-tick: appState -> appState
-; purpose:   when it's the player's turn, its tick state is still
-; header:    (define (player-tick state) INITIAL_APP_STATE)
-
-;; TEMPLATE
-; (define (player-tick state) ... state ...)
-
-;; CODE
-(define (player-tick state)
-  (make-appState (appState-canvas state)
-                 (appState-p state)
-                 (appState-e state)
-                 (appState-s state)
-                 (appState-boss state)
-                 (appState-running? state)
-                 "still"))

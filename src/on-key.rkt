@@ -50,7 +50,8 @@
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    (boss-key key))]
+                    (boss-key key)
+                    (appState-change-turn state))]
     ; check if it is the player turn -> see player-key funcion
     [(string=? (appState-s state) "player")
      (make-appState (appState-canvas state)
@@ -61,7 +62,8 @@
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
-                    (appState-movement state))]
+                    (appState-movement state)
+                    (appState-change-turn state))]
     [else state]))
 
 ;;; ======== BOSS-KEY ========
@@ -151,5 +153,6 @@
                  (appState-s state)
                  (appState-boss state)
                  (appState-running? state)
-                 "still")]
+                 "still"
+                 (appState-change-turn state))]
   [else state]))
