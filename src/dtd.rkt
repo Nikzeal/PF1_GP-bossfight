@@ -1,7 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname dtd) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
-
 (require 2htdp/image)
 (require 2htdp/universe)
 (require racket/base)
@@ -27,91 +26,90 @@
 (define ENTITY_SPEED 2000)
 (define PL_LP (scale 0.02 (bitmap/file "../resources/heart-pl.png")))
 (define BOSS_LP (scale 0.02(bitmap/file "../resources/heart-boss.png")))
-(define PL_HP (scale 1 (bitmap/file "../resources/heart.png")))   
+(define PL_HP (scale 0.65 (bitmap/file "../resources/heart.png")))   
 
 (define HP_SPRITE_10 (above (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)
        (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)))
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)))
 
 (define HP_SPRITE_9 (above (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)
        (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)))
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)))
 
 (define HP_SPRITE_8 (above (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)
        (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)))
+          PL_HP
+          PL_HP
+          PL_HP)))
 
 (define HP_SPRITE_7 (above (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)
        (beside
-          BOSS_LP
-          BOSS_LP)))
+          PL_HP
+          PL_HP)))
 
 (define HP_SPRITE_6 (above (beside
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP
-          BOSS_LP)
-          BOSS_LP))
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP)
+          PL_HP))
 
 (define HP_SPRITE_5
     (beside
-       PL_LP
-       PL_LP
-       PL_LP
-       PL_LP
-       PL_LP))
+       PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
+          PL_HP))
 
 (define HP_SPRITE_4 
     (beside
-       PL_LP
-       PL_LP
-       PL_LP
-       PL_LP
+       PL_HP
+          PL_HP
+          PL_HP
+          PL_HP
        ))
 
 (define HP_SPRITE_3
     (beside
-       PL_LP
-       PL_LP
-       PL_LP
+       PL_HP
+          PL_HP
+          PL_HP
        ))
 
 (define HP_SPRITE_2
-    (beside
-       PL_LP
-       PL_LP))
+    (beside PL_HP
+          PL_HP))
 
-(define HP_SPRITE_1 PL_LP)
+(define HP_SPRITE_1 PL_HP)
 
 (define KNIFE_SPRITE (bitmap/file "../resources/knife.png"))
 (define BALL_SPRITE  (scale 0.2 (bitmap/file "../resources/ball.png")))
@@ -251,10 +249,8 @@
     (list PL_SPRITE
           BS_SPRITE_N
           PL_BOX
-          ;(draw-lp (player-hp (appState-p as)))
-        PL_HP
-        PL_HP
-          ;(draw-lp (appState-boss as))
+          (draw-lp (player-hp (appState-p as)))
+          (draw-lp (appState-boss as))
           placeholder_rec
           placeholder_rec
           ;entities
@@ -336,10 +332,8 @@
     (list PL_SPRITE
           BS_SPRITE_N
           PL_BOX
-         ; (draw-lp (player-hp (appState-p as)))
-          ;(draw-lp (appState-boss as))
-        PL_HP
-        PL_HP
+          (draw-lp (player-hp (appState-p as)))
+          (draw-lp (appState-boss as))
           placeholder_rec
           placeholder_rec)
     (list (player-position (appState-p as))
@@ -390,7 +384,6 @@
     ))
 
 ;--------------------------------------------------------------------------------------
-
 
 ;;; ======== HANDLE-KEY ========
 
