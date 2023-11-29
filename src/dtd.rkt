@@ -179,10 +179,10 @@
 ; interpretation: a list that represents all the entities' `sprites` at positions `positions` 
 (define-struct entities [sprites positions])
 ;; Data examples
-(define EMPTY (make-entities '() '() ))
+(define EMPTY  (make-entities '() '() ))
 (define KNIFES (make-entities (build-list 5 (lambda (n) KNIFE_SPRITE)) (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
 (define ARROWS (make-entities (build-list 5 (lambda (n) ARROW_SPRITE)) (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
-(define SWORD (make-entities (build-list 1 (lambda (n) SWORD_SPRITE)) (build-list 1 (lambda (n) (make-posn (random 400) (random 300)))) ))
+(define SWORD  (make-entities (build-list 1 (lambda (n) SWORD_SPRITE)) (build-list 1 (lambda (n) (make-posn (random 400) (random 300)))) ))
 (define BALLS  (make-entities (build-list 5 (lambda (n) BALL_SPRITE))  (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
 
 ;--------------------------------------------------------------------------------------
@@ -227,9 +227,10 @@
 
 ;;; ======== DRAW-ENTITIES ========
 
-; draw-entities: appState -> Image
-; draws the appstate on the boss' turn with entities
-; header: (define (draw-entities as) INITIAL_CANVAS)
+;; INPUT/OUTPUT
+; signature: draw-entities: appState -> Image
+; purpose:   draws the appstate on the boss' turn with entities
+; header:    (define (draw-entities as) INITIAL_CANVAS)
 
 ;; TEMPLATE
 ; (define (draw-turn as)
@@ -244,6 +245,7 @@
 ;   ... (player-position (appState-p as)) ...
 ; )
 
+;; CODE
 (define (draw-entities as)
    (place-images
     (list PL_SPRITE
@@ -275,12 +277,29 @@
 
 ;;; ======== DRAW-LP ========
 
-; draw-lp: Number -> Image
-; draws a certain `n` of images to display 
-; header: (define (draw-lp n) HP_SPRITE_PL_INITIAL)
+;; INPUT/OUTPUT
+; signature: draw-lp: Number -> Image
+; purpose:   draws a certain `n` of images to display 
+; header:    (define (draw-lp n) HP_SPRITE_PL_INITIAL)
 
+;; TEMPLATE
+; (define (draw-lp n)
+;   (cond
+;     [(= n 1) ...]
+;     [(= n 2) ...]
+;     [(= n 3) ...]
+;     [(= n 4) ...]
+;     [(= n 5) ...]
+;     [(= n 6) ...]
+;     [(= n 7) ...]
+;     [(= n 8) ...]
+;     [(= n 9) ...]
+;     [else    ...]))
+
+;; CODE
 (define (draw-lp n)
   (cond
+    ; check the number of hearts and return the image of them
     [(= n 1) HP_SPRITE_1]
     [(= n 2) HP_SPRITE_2]
     [(= n 3) HP_SPRITE_3]
@@ -290,24 +309,25 @@
     [(= n 7) HP_SPRITE_7]
     [(= n 8) HP_SPRITE_8]
     [(= n 9) HP_SPRITE_9]
-    [else HP_SPRITE_10]))
+    [else    HP_SPRITE_10]))
 
 ;;; ======== DRAW-TURN ========
 
-; draw-turn: appState -> Image
-; draws the appstate on the boss' or player's turn
-; header: (define (drawTurn as) INITIAL_CANVAS)
+;; INPUT/OUTPUT
+; signature: draw-turn: appState -> Image
+; purpose:   draws the appstate on the boss' or player's turn
+; header:    (define (drawTurn as) INITIAL_CANVAS)
 
 ;; TEMPLATE
 ; (define (draw-turn as)
 ;   ... (draw-lp (player-hp (appState-p as))) ...
-;   ... (draw-lp (appState-boss as)) ...
-;   ... (draw-entity (appState-e as)) ...
-;   ... PL_SPRITE ...
-;   ... BS_SPRITE_N ...
-;   ... PL_BOX ...
-;   ... placeholder_rec ...
-;   ... (player-position (appState-p as)) ...
+;   ... (draw-lp (appState-boss as))          ...
+;   ... (draw-entity (appState-e as))         ...
+;   ... PL_SPRITE                             ...
+;   ... BS_SPRITE_N                           ...
+;   ... PL_BOX                                ...
+;   ... placeholder_rec                       ...
+;   ... (player-position (appState-p as))     ...
 ; ) 
 
 ;; CODE
@@ -333,10 +353,12 @@
 
 ;;; ======== DRAW-STATE ========
 
-; drawAppState: appState -> Image
-; display the appState on the scene as an image
-; header: (define (drawAppState as) BACKGROUND)
+;; INPUT/OUTPUT
+; signature: drawAppState: appState -> Image
+; purpose:   display the appState on the scene as an image
+; header:    (define (drawAppState as) BACKGROUND)
 
+;; EXAMPLES
 (check-expect (drawAppState INITIAL_APP_STATE) INITIAL_CANVAS)
 (check-expect (drawAppState (make-appState BACKGROUND PL1 BALL "boss" 8 #true "still"))
               (place-images
@@ -414,7 +436,7 @@
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE
                                  (player-hp (appState-p state))
-                                 (player-key key))
+                                 (player-key key (appState-p state)))
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
@@ -467,14 +489,14 @@
 ;     [else                ...]))
 
 ;; CODE
-(define (player-key key)
+(define (player-key key player)
   (cond
     ; check if the pressed key is "left" and place the player on the attack box
-    [(key=? key "left")  ATK_BOX_POSITION]
+    [(key=? key "left")  ATK_BOX_POSITION        ]
     ; check if the pressed key is "right" and place the player on the heal box
-    [(key=? key "right") HEAL_BOX_POSITION]
-    ; if no key is pressed, return the "still" state
-    [else       "still"]))
+    [(key=? key "right") HEAL_BOX_POSITION       ]
+    ; if any other key is pressed, it returns the current player position
+    [else                (player-position player)]))
 
 ;--------------------------------------------------------------------------------------
 
@@ -488,10 +510,10 @@
 ; header:    (define (handle-release state key) INITIAL_APP_STATE)
 
 ;; EXAMPLES
-;(check-expect (handle-release INITIAL_APP_STATE "right") INITIAL_APP_STATE)
-;(check-expect (handle-release AP2               "left" ) AP2              )
-;(check-expect (handle-release AP3               "up"   ) AP3              )
-;(check-expect (handle-release AP4               "right") AP4              )
+(check-expect (handle-release INITIAL_APP_STATE "right") INITIAL_APP_STATE)
+(check-expect (handle-release AP2               "left" ) AP2              )
+(check-expect (handle-release AP3               "up"   ) AP3              )
+(check-expect (handle-release AP4               "right") AP4              )
 
 ;; TEMPLATE
 ; (define (handle-release state key)
@@ -501,17 +523,16 @@
 
 ;; CODE
 (define (handle-release state key)
-   (cond
-     ; check if it is the boss turn -> see boss-release
-    [(string=? (appState-s state) "boss")
-     (make-appState (appState-canvas state)
-                    (appState-p state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    "still")]
-    [else state]))
+  (cond
+  [(or (key=? key "left") (key=? key "right") (key=? key "up") (key=? key "down"))
+   (make-appState (appState-canvas state)
+                 (appState-p state)
+                 (appState-e state)
+                 (appState-s state)
+                 (appState-boss state)
+                 (appState-running? state)
+                 "still")]
+  [else state]))
 
 ;--------------------------------------------------------------------------------------
 
@@ -526,12 +547,18 @@
 
 ;; EXAMPLES
 (check-expect (tick INITIAL_APP_STATE) INITIAL_APP_STATE)
-(check-expect (tick AP2)               (make-appState BACKGROUND
-                                                      (make-player PL_SPRITE 3 (make-posn 600 749))
-                                                      BALLS "boss" 10 #true "still"))
-(check-expect (tick AP3)               (make-appState BACKGROUND
-                                                      (make-player PL_SPRITE 3 (make-posn 501 850))
-                                                      BALLS "boss" 10 #true "still"))
+(check-expect (tick AP2)               (make-appState
+                                        BACKGROUND
+                                        (make-player
+                                         PL_SPRITE 3
+                                         (make-posn 600 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
+                                        BALLS "boss" 10 #true "still"))
+(check-expect (tick AP3)               (make-appState
+                                        BACKGROUND
+                                        (make-player
+                                         PL_SPRITE 3
+                                         (make-posn (+ PL_BOX_LEFT (/ PL_WIDTH 2)) 850))
+                                        BALLS "boss" 10 #true "still"))
 (check-expect (tick AP4)               AP4)
 
 ;; TEMPLATE
@@ -570,10 +597,16 @@
 (define (boss-tick state)
   (cond
     ; check if the player is inside the box  -> see boss-tick-box
-    [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2)) (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
-          (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))  (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
+    [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2))
+             (posn-x (player-position (appState-p state)))
+             (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
+          (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
+             (posn-y (player-position (appState-p state)))
+             (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
           (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE  (player-hp (appState-p state)) (boss-tick-box state))
+                    (make-player PL_SPRITE
+                                 (player-hp (appState-p state))
+                                 (boss-tick-box state))
                     (entity-move state)
                     (appState-s state)
                     (appState-boss state)
@@ -582,7 +615,9 @@
     ; check if the player is outside the box -> see boss-tick-border
     [else
      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE  (player-hp (appState-p state)) (boss-tick-border state))
+                    (make-player PL_SPRITE
+                                 (player-hp (appState-p state))
+                                 (boss-tick-border state))
                     (entity-move state)
                     (appState-s state)
                     (appState-boss state)
@@ -599,22 +634,29 @@
 ;; TEMPLATE
 ;(define (entity-move state)
 ;  (cond
-;    [(and (empty? (entities-sprites (appState-e state)))
+;    [(and (empty? (entities-sprites   (appState-e state)))
 ;          (empty? (entities-positions (appState-e state))))
-;     ... BALL_SPRITE ... (random 400) ... (random 300) ...]
-;    [else ... (entities-sprites (appState-e state)) ...
-;     ... BASE_SPEED ... FRAME ... (entities-positions (appState-e state))]))
+;          ... BALL_SPRITE  ...
+;          ... (random 400) ...
+;          ... (random 300) ...]
+;    [else ... (entities-sprites (appState-e state))   ...
+;          ... BASE_SPEED                              ...
+;          ... FRAME                                   ...
+;          ... (entities-positions (appState-e state)) ...]))
 
 
 ;; CODE
 (define (entity-move state)
   (cond
-    [(and (empty? (entities-sprites (appState-e state)))
+    [(and (empty? (entities-sprites   (appState-e state)))
           (empty? (entities-positions (appState-e state))))
-     (make-entities (build-list  7 (lambda (n) BALL_SPRITE)) (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 250) 51)))))]
+     (make-entities
+      (build-list 7 (lambda (n) BALL_SPRITE))
+      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 250) 51)))))]
     [else  (entity-reset (appState-e state))]))
 
 ;(define posns (list (make-posn 10 20) (make-posn 30 20) (make-posn 40 20)))
+
 ;;; ======== ENTITY-RESET ========
 
 ; signature: entity-reset: entities -> entities
@@ -624,11 +666,13 @@
 ;; TEMPLATE
 ;(define (entity-reset en)
 ; (cond
-;    [(andmap (lambda (n) (<= 0 (posn-x n) 400))(entities-positions en))
-;       ... (entities-sprites en) ... (entities-positions en) ...]
-;    [else  ... (entities-sprites en) ... (entities-positions en) ...]))
+;    [(ormap (lambda (n) (<= 0 (posn-x n) 400))(entities-positions en))
+;           ... (entities-sprites en)   ...
+;           ... (entities-positions en) ...]
+;    [else  ... (entities-sprites en)   ...
+;           ... (entities-positions en) ...]))
 
-
+;; CODE
 (define (entity-reset en)
   (cond
     [(ormap (lambda (n)
@@ -657,35 +701,40 @@
 ;; TEMPLATE
 ; (define (boss-tick-box state)
 ;   (cond
-;     [(or (string=? (appState-movement state) "left") (string=? (appState-movement state) "up")) ... state ...]
-;     [(or (string=? (appState-movement state) "right") (string=? (appState-movement state) "down")) ... state ...]
-;     [else                                         ... state ....]))
+;     [(or (string=? (appState-movement state) "left" )
+;          (string=? (appState-movement state) "up"   )) ... state ...]
+;     [(or (string=? (appState-movement state) "right")
+;          (string=? (appState-movement state) "down" )) ... state ...]
+;     [else                                              ... state ...]))
 
 
 ;; CODE
 (define (boss-tick-box state)
   (cond
     ; check if movement is "left" or "up" and decrements the x or y position-> see player-move
-    [(or (string=? (appState-movement state) "left") (string=? (appState-movement state) "up"))
-     (player-move (appState-p state) (appState-movement state) -)]
+    [(or (string=? (appState-movement state) "left"  )
+         (string=? (appState-movement state) "up"    ))
+     (player-move  (appState-p state) (appState-movement state) -)]
     ; check if movement is "right" or "down" and increments the x or y position-> see player-move
-    [(or (string=? (appState-movement state) "right") (string=? (appState-movement state) "down"))
-     (player-move (appState-p state) (appState-movement state) +)]
-    [else (player-position (appState-p state))]))
+    [(or (string=? (appState-movement state) "right" )
+         (string=? (appState-movement state) "down"  ))
+     (player-move  (appState-p state) (appState-movement state) +)]
+    [else          (player-position (appState-p state))           ]))
 
 ;;; ======== PLAYER-MOVE  ========
 
 ;; INPUT/OUTPUT
 ; signature: player-move: player movement [Number Number -> Number] -> player
 ; purpose:   changes the position of the player by 100/FRAME pixels
-;            based on the movement `m` by increasing or decreasing its position based on the function `fun`
+;            based on the movement `m` by increasing or decreasing its position based
+;            on the function `fun`
 ; header:    (define (player-move p m fun) INITIAL_PLAYER)
 
 ;; TEMPLATE
 ;(define (player-move p m fun)
 ;  (cond
 ;    [(or (string=? m "right") (string=? m "left")) ... (player-position p) ...]
-;    [(or (string=? m "up") (string=? m "down")) ... (player-position p) ...]))
+;    [(or (string=? m "up")    (string=? m "down")) ... (player-position p) ...]))
 
 ;; CODE
 (define (player-move p m fun)
@@ -693,7 +742,7 @@
     [(or (string=? m "right") (string=? m "left"))
                (make-posn (fun (posn-x (player-position p)) (* BASE_SPEED FRAME))
                           (posn-y (player-position p)))]
-    [(or (string=? m "up") (string=? m "down"))
+    [(or (string=? m "up"   ) (string=? m "down"))
                (make-posn (posn-x (player-position p))
                           (fun (posn-y (player-position p)) (* BASE_SPEED FRAME)))]))
 
