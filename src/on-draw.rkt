@@ -47,7 +47,9 @@
            (entities-sprites (appState-e as))
            (entities-positions (appState-e as))
            (rectangle 1440 300 "solid" "transparent"))
+          (text (number->string (appState-change-turn as)) 50 "white")
           )
+    
     (list (player-position (appState-p as))
           BS_SPRITE_POSITION
           PL_BOX_POSITION
@@ -55,7 +57,8 @@
           LP_POSITION_BO
           ATK_BOX_POSITION
           HEAL_BOX_POSITION
-          PL_BOX_POSITION)
+          PL_BOX_POSITION
+          (make-posn 100 100))
     BACKGROUND))
 
 
@@ -124,14 +127,16 @@
           (draw-lp (player-hp (appState-p as)))
           (draw-lp (appState-boss as))
           placeholder_rec
-          placeholder_rec)
+          placeholder_rec
+          (text (number->string (appState-change-turn as)) 50 "white"))
     (list (player-position (appState-p as))
           BS_SPRITE_POSITION
           PL_BOX_POSITION
           LP_POSITION_PL
           LP_POSITION_BO
           ATK_BOX_POSITION
-          HEAL_BOX_POSITION)
+          HEAL_BOX_POSITION
+          (make-posn 100 100))
     BACKGROUND))
 
 ;;; ======== DRAW-STATE ========

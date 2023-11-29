@@ -45,7 +45,7 @@
 ;;; ======== BIG-BANG ========
 
 (big-bang INITIAL_APP_STATE
-   (on-tick tick TICK)
+   (on-tick tick )
    (on-key handle-key)
    (on-release handle-release)
    (to-draw drawAppState)
