@@ -45,7 +45,7 @@
 (define (tick state)
   (cond
     ; check if it is the boss turn   -> see boss-tick
-    [ (<  (appState-change-turn state) 500)
+    [ (< (appState-change-turn state) 499)
      (make-appState (appState-canvas state)
                     (boss-tick state)
                     (entity-move state)
@@ -54,7 +54,19 @@
                     (appState-running? state)
                     (appState-movement state)
                     (add1 (appState-change-turn state)))]
-    ; check if it is the player turn -> see player-tick
+    ; check if it is the player turn and display the player on the ATK button
+    [(= (appState-change-turn state) 499)
+      (make-appState (appState-canvas state)
+                    (make-player PL_SPRITE
+                                 (player-hp (appState-p state))
+                                 ATK_BOX_POSITION)
+                    EMPTY
+                    "player"
+                    (appState-boss state)
+                    (appState-running? state)
+                    "still"
+                    (add1 (appState-change-turn state)))]
+    ; let the player decide which action choose
     [else
      (make-appState (appState-canvas state)
                     (appState-p state)
