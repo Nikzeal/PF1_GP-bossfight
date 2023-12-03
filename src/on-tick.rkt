@@ -77,6 +77,34 @@
                     "still"
                     (appState-change-turn state))]))
 
+;;; ======== COLLISION ========
+
+(define (distance-between x y)
+  (sqrt (+ (sqr (- (posn-x y) (posn-x x)))
+           (sqr (- (posn-y y) (posn-y x))))))
+
+(define (collision p e)
+  (cond
+    [(or (>= 79 (distance-between (first   (entities-positions e)) (player-position p)))
+         (>= 79 (distance-between (second  (entities-positions e)) (player-position p)))
+         (>= 79 (distance-between (third   (entities-positions e)) (player-position p)))
+         (>= 79 (distance-between (fourth  (entities-positions e)) (player-position p)))
+         (>= 79 (distance-between (fifth   (entities-positions e)) (player-position p)))
+         (>= 79 (distance-between (sixth   (entities-positions e)) (player-position p)))
+         (>= 79 (distance-between (seventh (entities-positions e)) (player-position p))))
+     (sub1 (player-hp p))]
+    [else (player-hp p)]))
+
+;(define (collision p e)
+;  (cond
+;    [(member? (player-position p) (entities-positions e)) EMPTY]
+;    [else (build-list 7 (lambda (n) BALL_SPRITE))]))
+
+(define (lost? p)
+  (cond
+    [(= (player-hp p) 0) #false]
+    [else #true]))
+
 ;;; ======== BOSS-TICK ========
 
 ;; INPUT/OUTPUT
