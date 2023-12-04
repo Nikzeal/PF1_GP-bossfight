@@ -208,8 +208,8 @@
                               (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
 (define SWORD  (make-entities (build-list 1 (lambda (n) SWORD_SPRITE))
                               (build-list 1 (lambda (n) (make-posn (random 400) (random 300)))) ))
-(define BALLS  (make-entities (build-list 5 (lambda (n) BALL_SPRITE))
-                              (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
+(define BALLS  (make-entities (build-list 7 (lambda (n) BALL_SPRITE))
+                              (build-list 7 (lambda (n) (make-posn (random 200) (+ 450 (random 300))))) ))
 
 ;--------------------------------------------------------------------------------------
 
@@ -245,7 +245,7 @@
 (define-struct appState [canvas p e s boss running? movement change-turn])
 
 ;; Data examples
-(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER EMPTY "boss" 10 #true "still" 0))
+(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER BALLS "boss" 10 #true "still" 0))
 ;(define AP2 (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "still"))
 ;(define AP3 (make-appState BACKGROUND PL2 KNIFES "boss" 10 #true "still"))
 ;(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))

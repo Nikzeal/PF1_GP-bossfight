@@ -46,7 +46,7 @@
           (place-images
            (entities-sprites (appState-e as))
            (entities-positions (appState-e as))
-           (rectangle 1440 300 "solid" "transparent"))
+           (rectangle 1440 900 "solid" "transparent"))
           (text (number->string (appState-change-turn as)) 50 "white")
           )
     
@@ -57,7 +57,7 @@
           LP_POSITION_BO
           ATK_BOX_POSITION
           HEAL_BOX_POSITION
-          PL_BOX_POSITION
+          (make-posn 720 450)
           (make-posn 100 100))
     BACKGROUND))
 
@@ -149,25 +149,25 @@
 ;; EXAMPLES
 (check-expect (drawAppState INITIAL_APP_STATE) INITIAL_CANVAS)
 ; (check-expect (drawAppState (make-appState BACKGROUND PL1 BALL "boss" 8 #true "still"))
-;              (place-images
- ;              (list PL_SPRITE
-  ;                   BS_SPRITE_N
-   ;                  PL_BOX
-    ;                 (draw-lp (player-hp PL1))
-     ;                (draw-lp 8)
-      ;               placeholder_rec
-       ;              placeholder_rec)
-        ;       (list (player-position PL1)
-         ;            BS_SPRITE_POSITION
-          ;            PL_BOX_POSITION
-           ;           LP_POSITION_PL
-            ;          LP_POSITION_BO
-             ;         ATK_BOX_POSITION
-              ;        HEAL_BOX_POSITION)
-               ;BACKGROUND))
+;               (place-images
+;               (list PL_SPRITE
+;                      BS_SPRITE_N
+;                      PL_BOX
+;                      (draw-lp (player-hp PL1))
+;                      (draw-lp 8)
+;                      placeholder_rec
+;                      placeholder_rec)
+;                (list (player-position PL1)
+;                      BS_SPRITE_POSITION
+;                      PL_BOX_POSITION
+;                      LP_POSITION_PL
+;                      LP_POSITION_BO
+;                      ATK_BOX_POSITION
+;                      HEAL_BOX_POSITION)
+;               BACKGROUND))
 
 ;; TEMPLATE
-
+; ...
 
 ;; CODE 
 (define (drawAppState as)

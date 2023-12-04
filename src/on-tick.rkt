@@ -20,20 +20,20 @@
 ; header:    (define (tick state) INITIAL_APP_STATE)
 
 ;; EXAMPLES
-;(check-expect (tick INITIAL_APP_STATE) INITIAL_APP_STATE)
-;(check-expect (tick AP2)               (make-appState
+; (check-expect (tick INITIAL_APP_STATE) INITIAL_APP_STATE)
+; (check-expect (tick AP2)               (make-appState
 ;                                        BACKGROUND
 ;                                        (make-player
-;                                         PL_SPRITE 3
-;                                         (make-posn 600 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
- ;                                       BALLS "boss" 10 #true "still"))
-;(check-expect (tick AP3)               (make-appState
- ;                                       BACKGROUND
-  ;                                      (make-player
-   ;                                      PL_SPRITE 3
-    ;                                     (make-posn (+ PL_BOX_LEFT (/ PL_WIDTH 2)) 850))
-     ;                                   BALLS "boss" 10 #true "still"))
-;(check-expect (tick AP4)               AP4)
+;                                        PL_SPRITE 3
+;                                        (make-posn 600 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
+;                                        BALLS "boss" 10 #true "still"))
+; (check-expect (tick AP3)               (make-appState
+;                                         BACKGROUND
+;                                          (make-player
+;                                           PL_SPRITE 3
+;                                           (make-posn (+ PL_BOX_LEFT (/ PL_WIDTH 2)) 850))
+;                                         BALLS "boss" 10 #true "still"))
+; (check-expect (tick AP4)               AP4)
 
 ;; TEMPLATE
 ; (define (tick state)
@@ -47,11 +47,14 @@
     ; check if it is the boss turn   -> see boss-tick
     [ (< (appState-change-turn state) 499)
      (make-appState (appState-canvas state)
-                    (boss-tick state)
-                    (entity-move state)
+                    (make-player PL_SPRITE
+                                 (collision (appState-p state) (appState-e state))
+                                 (boss-tick state))
+                    (make-entities (entities-sprites (appState-e state))
+                                   (entity-move state))
                     "boss"
                     (appState-boss state)
-                    (appState-running? state)
+                    (end? (appState-p state))
                     (appState-movement state)
                     (add1 (appState-change-turn state)))]
     ; check if it is the player turn and display the player on the ATK button
@@ -73,34 +76,76 @@
                     EMPTY
                     "player"
                     (appState-boss state)
-                    (appState-running? state)
+                    (end? (appState-p state))
                     "still"
                     (appState-change-turn state))]))
 
 ;;; ======== COLLISION ========
 
-(define (distance-between x y)
-  (sqrt (+ (sqr (- (posn-x y) (posn-x x)))
-           (sqr (- (posn-y y) (posn-y x))))))
+;; INPUT/OUTPUT
+; signature: collsion: player entities -> Number
+; purpose:   remove a hp if the player collided with an entity
+; header:    (define (collision p e) 0)
 
+;; TEMPLATE
+; (define (collision p e)
+;   (cond
+;     [(or (>= 79 (distance (first   (entities-positions e)) (player-position p)))
+;          (>= 79 (distance (second  (entities-positions e)) (player-position p)))
+;          (>= 79 (distance (third   (entities-positions e)) (player-position p)))
+;          (>= 79 (distance (fourth  (entities-positions e)) (player-position p)))
+;          (>= 79 (distance (fifth   (entities-positions e)) (player-position p)))
+;          (>= 79 (distance (sixth   (entities-positions e)) (player-position p)))
+;          (>= 79 (distance (seventh (entities-positions e)) (player-position p))))
+;           ...]
+;     [else ...]))
+
+;; CODE
 (define (collision p e)
   (cond
-    [(or (>= 79 (distance-between (first   (entities-positions e)) (player-position p)))
-         (>= 79 (distance-between (second  (entities-positions e)) (player-position p)))
-         (>= 79 (distance-between (third   (entities-positions e)) (player-position p)))
-         (>= 79 (distance-between (fourth  (entities-positions e)) (player-position p)))
-         (>= 79 (distance-between (fifth   (entities-positions e)) (player-position p)))
-         (>= 79 (distance-between (sixth   (entities-positions e)) (player-position p)))
-         (>= 79 (distance-between (seventh (entities-positions e)) (player-position p))))
+    ; check if the distance is lower than the sum of the radius of the two images -> see distance
+    [(or (>= 39 (distance (first   (entities-positions e)) (player-position p)))
+         (>= 39 (distance (second  (entities-positions e)) (player-position p)))
+         (>= 39 (distance (third   (entities-positions e)) (player-position p)))
+         (>= 39 (distance (fourth  (entities-positions e)) (player-position p)))
+         (>= 39 (distance (fifth   (entities-positions e)) (player-position p)))
+         (>= 39 (distance (sixth   (entities-positions e)) (player-position p)))
+         (>= 39 (distance (seventh (entities-positions e)) (player-position p))))
      (sub1 (player-hp p))]
     [else (player-hp p)]))
 
-;(define (collision p e)
-;  (cond
-;    [(member? (player-position p) (entities-positions e)) EMPTY]
-;    [else (build-list 7 (lambda (n) BALL_SPRITE))]))
+;;; ======== DISTANCE ========
 
-(define (lost? p)
+;; INPUT/OUTPUT
+; signature: distance: Posn Posn -> Number
+; purpose:   compute the distance between two posns
+; header:    (define (distance x y) 0)
+
+;; TEMPLATE
+; (define (distance x y)
+;   ... (posn-x y) ... (posn-x x) ...
+;   ... (posn-y y) ... (posn-y x) ...)
+
+;; CODE
+(define (distance x y)
+  (sqrt (+ (sqr (- (posn-x y) (posn-x x)))
+           (sqr (- (posn-y y) (posn-y x))))))
+
+;;; ======== END? ========
+
+;; INPUT/OUTPUT
+; signature: end?: player -> Boolean
+; purpose:   quit the big-bang whenever the game has ended (lost or won)
+; header:    (define (end? p) #false)
+
+;; TEMPLATE
+; (define (end? p)
+;   (cond
+;     [(= (player-hp p) 0) ...]
+;     [else                ...]))
+
+;; CODE
+(define (end? p)
   (cond
     [(= (player-hp p) 0) #false]
     [else #true]))
@@ -108,19 +153,24 @@
 ;;; ======== BOSS-TICK ========
 
 ;; INPUT/OUTPUT
-; signature: boss-tick: appState player -> appState
+; signature: boss-tick: appState -> Posn
 ; purpose:   when it's the boss' turn, checks if the player is in the borders of the box,
 ;            in that case it handles the movement normally, otherwise it changes the position
-;            to "still"
-; header:    (define (boss-tick state) INITIAL_APP_STATE)
+;            to "still". If the player is against the border, some movement are limited (he
+;            cannot surpass the box borders)
+; header:    (define (boss-tick state) (make-posn 0 0))
 
 ;; TEMPLATE
 ; (define (boss-tick state)
 ;   (cond
-;     [(and (< 500 (posn-x (player-position (appState-p state))) 900)
-;           (< 450 (posn-y (player-position (appState-p state))) 750))
-;           ... state ...]
-;     [else ... state ...]))
+;     [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2))
+;              (posn-x (player-position (appState-p state)))
+;              (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
+;           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
+;              (posn-y (player-position (appState-p state)))
+;              (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
+;           ...]
+;     [else ...]))
 
 ;; CODE
 (define (boss-tick state)
@@ -132,87 +182,17 @@
           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
              (posn-y (player-position (appState-p state)))
              (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
-                    (make-player PL_SPRITE
-                                 (player-hp (appState-p state))
-                                 (boss-tick-box state))]
+     (boss-tick-box state)]
     ; check if the player is outside the box -> see boss-tick-border
-    [else (make-player PL_SPRITE
-                       (player-hp (appState-p state))
-                       (boss-tick-border state))]))
-
-;;; ======== ENTITY-MOVE  ========
-
-;; INPUT/OUTPUT
-; signature: entity-move: appState -> entity
-; purpose:   handles the movement of the entities accross the canvas
-; header:    (define (entity-move state) BALL)
-
-;; TEMPLATE
-;(define (entity-move state)
-;  (cond
-;    [(and (empty? (entities-sprites   (appState-e state)))
-;          (empty? (entities-positions (appState-e state))))
-;          ... BALL_SPRITE  ...
-;          ... (random 400) ...
-;          ... (random 300) ...]
-;    [else ... (entities-sprites (appState-e state))   ...
-;          ... BASE_SPEED                              ...
-;          ... FRAME                                   ...
-;          ... (entities-positions (appState-e state)) ...]))
-
-
-;; CODE
-(define (entity-move state)
-  (cond
-    [(and (empty? (entities-sprites   (appState-e state)))
-          (empty? (entities-positions (appState-e state))))
-     (make-entities
-      (build-list 7 (lambda (n) BALL_SPRITE))
-      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 250) 51)))))]
-    [else  (entity-reset (appState-e state))]))
-
-;(define posns (list (make-posn 10 20) (make-posn 30 20) (make-posn 40 20)))
-
-;;; ======== ENTITY-RESET ========
-
-; signature: entity-reset: entities -> entities
-; purpose:   resets the entities x positions to the opposite border when they go out of a border
-; header:    (define (entity-reset en) BALLS)
- 
-;; TEMPLATE
-;(define (entity-reset en)
-; (cond
-;    [(ormap (lambda (n) (<= 0 (posn-x n) 400))(entities-positions en))
-;           ... (entities-sprites en)   ...
-;           ... (entities-positions en) ...]
-;    [else  ... (entities-sprites en)   ...
-;           ... (entities-positions en) ...]))
-
-;; CODE
-(define (entity-reset en)
-  (cond
-    [(ormap (lambda (n)
-               (<= 0
-                   (posn-x n)
-                   1440))
-             (entities-positions en))
-     (make-entities (entities-sprites en)
-                 (map (lambda (n)
-                        (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ))
-                      (entities-positions en)))]
     [else
-     (make-entities (entities-sprites en)
-                 (map (lambda (n)
-                        (make-posn (random 200) (random 300) ))
-                      (entities-positions en)))]))
-
+     (boss-tick-border state)]))
 
 ;;; ======== BOSS-TICK-BOX ========
 
 ;; INPUT/OUTPUT
-; signature: boss-tick-box: appState -> player
+; signature: boss-tick-box: appState -> Posn
 ; purpose:   handles the movement of the player by looking at the movement in the structure
-; header:    (define (boss-tick-box state) INITIAL_APP_STATE)
+; header:    (define (boss-tick-box state) (make-posn 0 0))
 
 ;; TEMPLATE
 ; (define (boss-tick-box state)
@@ -240,11 +220,11 @@
 ;;; ======== PLAYER-MOVE  ========
 
 ;; INPUT/OUTPUT
-; signature: player-move: player movement [Number Number -> Number] -> player
+; signature: player-move: player movement [Number Number -> Number] -> Posn
 ; purpose:   changes the position of the player by 100/FRAME pixels
 ;            based on the movement `m` by increasing or decreasing its position based
 ;            on the function `fun`
-; header:    (define (player-move p m fun) INITIAL_PLAYER)
+; header:    (define (player-move p m fun) (make-posn 0 0))
 
 ;; TEMPLATE
 ;(define (player-move p m fun)
@@ -262,29 +242,24 @@
                (make-posn (posn-x (player-position p))
                           (fun (posn-y (player-position p)) (* BASE_SPEED FRAME)))]))
 
-
 ;;; ======== BOSS-TICK-BORDER ========
 
 ;; INPUT/OUTPUT
-; signature: boss-tick-border: appState -> appState
+; signature: boss-tick-border: appState -> Posn
 ; purpose:   moves the player by some pixels in the opposite direction of the border it goes into
 ;            when the player reaches one of the borders of the PL_BOX
-; header:    (define (boss-tick-border state) INITIAL_APP_STATE)
+; header:    (define (boss-tick-border state) (make-posn 0 0))
 
 ;; TEMPLATE
 ; (define (boss-tick-border state)
 ;   (cond
-;     [(and (<= (posn-x (player-position (appState-p state))) 500)
-;           (string=? (appState-movement state) "left" ))
+;     [(<= (posn-x (player-position (appState-p state))) (+ PL_BOX_LEFT   (/ PL_WIDTH 2 )))
 ;           ... state ...]
-;     [(and (>= (posn-y (player-position (appState-p state))) 750)
-;           (string=? (appState-movement state) "down" ))
+;     [(>= (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))
 ;           ... state ...]
-;     [(and (>= (posn-x (player-position (appState-p state))) 900)
-;           (string=? (appState-movement state) "right"))
+;     [(>= (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT  (/ PL_WIDTH 2 )))
 ;           ... state ...]
-;     [(and (<= (posn-y (player-position (appState-p state))) 450)
-;           (string=? (appState-movement state) "up"   ))
+;     [(<= (posn-y (player-position (appState-p state))) (+ PL_BOX_TOP    (/ PL_HEIGHT 2)))
 ;           ... state ...]
 ;     [else ... state ...]))
 
@@ -304,3 +279,56 @@
     [(<= (posn-y (player-position (appState-p state))) (+ PL_BOX_TOP (/ PL_HEIGHT 2)))
      (make-posn (posn-x (player-position (appState-p state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2))))]
     [else (player-position (appState-p state))]))
+
+;;; ======== ENTITY-MOVE  ========
+
+;; INPUT/OUTPUT
+; signature: entity-move: appState -> List<Posn>
+; purpose:   handles the movement of the entities accross the canvas
+; header:    (define (entity-move state) (list (make-posn 0 0) (make-posn 0 0)))
+
+;; TEMPLATE
+;(define (entity-move state)
+;  (cond
+;    [(and (empty? (entities-sprites   (appState-e state)))
+;          (empty? (entities-positions (appState-e state))))
+;          ... (random 400)                            ...
+;          ... (random 300)                            ...]
+;    [else ... BASE_SPEED                              ...
+;          ... FRAME                                   ...
+;          ... (entities-positions (appState-e state)) ...]))
+
+
+;; CODE
+(define (entity-move state)
+  (cond
+    [(and (empty? (entities-sprites   (appState-e state)))
+          (empty? (entities-positions (appState-e state))))
+      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]
+    [else
+     (entity-reset (appState-e state))]))
+
+;;; ======== ENTITY-RESET ========
+
+; signature: entity-reset: entities -> List<Posn>
+; purpose:   resets the entities x positions to the opposite border when they go out of a border
+; header:    (define (entity-reset en) (list (make-posn 0 0) (make-posn 0 0)))
+ 
+;; TEMPLATE
+;(define (entity-reset en)
+; (cond
+;    [(ormap (lambda (n) (<= 0 (posn-x n) 400)) (entities-positions en))
+;           ... (entities-positions en) ...]
+;    [else  ... (entities-positions en) ...]))
+
+;; CODE
+(define (entity-reset en)
+  (cond
+    [(ormap (lambda (n) (<= 0 (posn-x n) 1440)) (entities-positions en))
+                 (map (lambda (n)
+                        (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ))
+                      (entities-positions en))]
+    [else
+                 (map (lambda (n)
+                        (make-posn (random 200) (+ 450 (random 300))))
+                      (entities-positions en))]))
