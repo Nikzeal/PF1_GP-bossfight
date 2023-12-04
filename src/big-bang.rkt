@@ -7,11 +7,8 @@
 (require racket/base)
 
 (require "data.rkt")
-
 (require "on-key.rkt")
-
 (require "on-draw.rkt")
-
 (require "on-tick.rkt")
 
 ;--------------------------------------------------------------------------------------
@@ -45,7 +42,7 @@
 ;;; ======== BIG-BANG ========
 
 (big-bang INITIAL_APP_STATE
-   (on-tick tick )
+   (on-tick tick 0.001)
    (on-key handle-key)
    (on-release handle-release)
    (to-draw drawAppState)
