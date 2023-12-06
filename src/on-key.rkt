@@ -5,8 +5,10 @@
 (require 2htdp/image)
 (require 2htdp/universe)
 (require racket/base)
+ 
 
 (require "data.rkt")
+(require "on-tick.rkt")
 
 (provide (all-defined-out))
 
@@ -53,18 +55,64 @@
                     (boss-key key)
                     (appState-change-turn state))]
     ; check if it is the player turn -> see player-key funcion
-    [(string=? (appState-s state) "player")
+    [(and (string=? (appState-s state) "player") (= (distance (player-position (appState-p state)) ATK_BOX_POSITION) 0))
      (make-appState (appState-canvas state)
                     (make-player PL_SPRITE
                                  (player-hp (appState-p state))
                                  (player-key key (appState-p state)))
                     (appState-e state)
                     (appState-s state)
+                    ;(player-attack (appState-p state) key (appState-boss state))
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
                     (appState-change-turn state))]
+     [(and (string=? (appState-s state) "player") (= (distance (player-position (appState-p state)) HEAL_BOX_POSITION) 0)) (player-heal state key)]
     [else state]))
+
+;;; ======== PLAYER-HEAL ========
+;; INPUT/OUTPUT
+; signature: player-heal: appState KeyEvent -> Number
+; purpose:   heals the player when player presses z
+; header:    (define (player-heal state key) 5)
+
+;; TEMPLATE
+;(define (player-attack state key)
+;  (cond
+;   [(and (= key "z") (< (player-hp player) 5)) ... (player-hp player) ...]
+;    [else ... (player-hp) ...]))
+
+;; CODE
+(define (player-heal state key)
+  (cond
+    [(and (string=? key "z") (< (player-hp (appState-p state)) 5))
+     (make-appState (appState-canvas state)
+                    (make-player PL_SPRITE
+                                 (add1 (player-hp (appState-p state)))
+                                 (player-position (appState-p state)))
+                    (entity-move state)
+                    "boss"
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    0)]
+    [else
+     (make-appState (appState-canvas state)
+                    (make-player PL_SPRITE
+                                 (player-hp (appState-p state))
+                                 (player-key key (appState-p state)))
+                    (entity-move state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    (appState-change-turn state))]))
+
+;;; ======== PLAYER-HEAL ========
+;; INPUT/OUTPUT
+; signature: player-attack: player KeyEvent -> Number
+; purpose:   attacks the boss when player presses z
+; header:    (define (player-attack player key) 5)
 
 ;;; ======== BOSS-KEY ========
 

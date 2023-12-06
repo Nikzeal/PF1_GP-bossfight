@@ -50,8 +50,7 @@
                     (make-player PL_SPRITE
                                  (collision (appState-p state) (appState-e state))
                                  (boss-tick state))
-                    (make-entities (entities-sprites (appState-e state))
-                                   (entity-move state))
+                    (entity-move state)
                     "boss"
                     (appState-boss state)
                     (end? (appState-p state))
@@ -103,15 +102,16 @@
 ;; CODE
 (define (collision p e)
   (cond
+    ;[]
     ; check if the distance is lower than the sum of the radius of the two images -> see distance
-    [(or (>= 39 (distance (first   (entities-positions e)) (player-position p)))
-         (>= 39 (distance (second  (entities-positions e)) (player-position p)))
-         (>= 39 (distance (third   (entities-positions e)) (player-position p)))
-         (>= 39 (distance (fourth  (entities-positions e)) (player-position p)))
-         (>= 39 (distance (fifth   (entities-positions e)) (player-position p)))
-         (>= 39 (distance (sixth   (entities-positions e)) (player-position p)))
-         (>= 39 (distance (seventh (entities-positions e)) (player-position p))))
-     (sub1 (player-hp p))]
+    [(or (>= 29 (distance (first   (entities-positions e)) (player-position p)))
+         (>= 29 (distance (second  (entities-positions e)) (player-position p)))
+         (>= 29 (distance (third   (entities-positions e)) (player-position p)))
+         (>= 29 (distance (fourth  (entities-positions e)) (player-position p)))
+         (>= 29 (distance (fifth   (entities-positions e)) (player-position p)))
+         (>= 29 (distance (sixth   (entities-positions e)) (player-position p)))
+         (>= 29 (distance (seventh (entities-positions e)) (player-position p))))
+     (sub1 (player-hp p)) ]
     [else (player-hp p)]))
 
 ;;; ======== DISTANCE ========
@@ -304,7 +304,9 @@
   (cond
     [(and (empty? (entities-sprites   (appState-e state)))
           (empty? (entities-positions (appState-e state))))
-      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]
+     (make-entities
+      (build-list 7 (lambda (n) BALL_SPRITE))
+      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450)))))]
     [else
      (entity-reset (appState-e state))]))
 
@@ -325,10 +327,14 @@
 (define (entity-reset en)
   (cond
     [(ormap (lambda (n) (<= 0 (posn-x n) 1440)) (entities-positions en))
-                 (map (lambda (n)
-                        (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ))
-                      (entities-positions en))]
+     (make-entities
+      (build-list 7 (lambda (n) BALL_SPRITE))
+      (map (lambda (n)
+             (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ))
+           (entities-positions en)))]
     [else
-                 (map (lambda (n)
-                        (make-posn (random 200) (+ 450 (random 300))))
-                      (entities-positions en))]))
+     (make-entities
+      (build-list 7 (lambda (n) BALL_SPRITE))
+      (map (lambda (n)
+             (make-posn (random 200) (+ 450 (random 300))))
+           (entities-positions en)))]))
