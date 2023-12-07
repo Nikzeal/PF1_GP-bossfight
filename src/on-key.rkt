@@ -71,6 +71,7 @@
     [else state]))
 
 ;;; ======== PLAYER-HEAL ========
+
 ;; INPUT/OUTPUT
 ; signature: player-heal: appState KeyEvent -> Number
 ; purpose:   heals the player when player presses z
@@ -90,7 +91,7 @@
                     (make-player PL_SPRITE
                                  (add1 (player-hp (appState-p state)))
                                  (player-position (appState-p state)))
-                    (entity-move state)
+                    (appState-e state)
                     "boss"
                     (appState-boss state)
                     (appState-running? state)
@@ -101,7 +102,7 @@
                     (make-player PL_SPRITE
                                  (player-hp (appState-p state))
                                  (player-key key (appState-p state)))
-                    (entity-move state)
+                    (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)

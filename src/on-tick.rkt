@@ -62,7 +62,7 @@
                     (make-player PL_SPRITE
                                  (player-hp (appState-p state))
                                  ATK_BOX_POSITION)
-                    EMPTY
+                    BALLS
                     "player"
                     (appState-boss state)
                     (appState-running? state)
@@ -72,7 +72,9 @@
     [else
      (make-appState (appState-canvas state)
                     (appState-p state)
-                    EMPTY
+                     (make-entities
+                      (build-list 7 (lambda (n) BALL_SPRITE))
+                      (build-list 7 (lambda (n) (make-posn (- (random 200) 210) (+ (random 300) 450))))) 
                     "player"
                     (appState-boss state)
                     (end? (appState-p state))
@@ -104,13 +106,13 @@
   (cond
     ;[]
     ; check if the distance is lower than the sum of the radius of the two images -> see distance
-    [(or (>= 29 (distance (first   (entities-positions e)) (player-position p)))
-         (>= 29 (distance (second  (entities-positions e)) (player-position p)))
-         (>= 29 (distance (third   (entities-positions e)) (player-position p)))
-         (>= 29 (distance (fourth  (entities-positions e)) (player-position p)))
-         (>= 29 (distance (fifth   (entities-positions e)) (player-position p)))
-         (>= 29 (distance (sixth   (entities-positions e)) (player-position p)))
-         (>= 29 (distance (seventh (entities-positions e)) (player-position p))))
+    [(or (>= 37 (distance (first   (entities-positions e)) (player-position p)))
+         (>= 37 (distance (second  (entities-positions e)) (player-position p)))
+         (>= 37 (distance (third   (entities-positions e)) (player-position p)))
+         (>= 37 (distance (fourth  (entities-positions e)) (player-position p)))
+         (>= 37 (distance (fifth   (entities-positions e)) (player-position p)))
+         (>= 37 (distance (sixth   (entities-positions e)) (player-position p)))
+         (>= 37 (distance (seventh (entities-positions e)) (player-position p))))
      (sub1 (player-hp p)) ]
     [else (player-hp p)]))
 
@@ -302,6 +304,24 @@
 ;; CODE
 (define (entity-move state)
   (cond
+    ; check if the player collided with an entity
+    [(or (>= 35 (distance (first   (entities-positions (appState-e state)))
+                          (player-position (appState-p state))))
+         (>= 35 (distance (second  (entities-positions (appState-e state)))
+                          (player-position (appState-p state))))
+         (>= 35 (distance (third   (entities-positions (appState-e state)))
+                          (player-position (appState-p state))))
+         (>= 35 (distance (fourth  (entities-positions (appState-e state)))
+                          (player-position (appState-p state))))
+         (>= 35 (distance (fifth   (entities-positions (appState-e state)))
+                          (player-position (appState-p state))))
+         (>= 35 (distance (sixth   (entities-positions (appState-e state)))
+                          (player-position (appState-p state))))
+         (>= 35 (distance (seventh (entities-positions (appState-e state)))
+                          (player-position (appState-p state)))))
+     (make-entities
+      (build-list 7 (lambda (n) BALL_SPRITE))
+      (collided? state))]
     [(and (empty? (entities-sprites   (appState-e state)))
           (empty? (entities-positions (appState-e state))))
      (make-entities
@@ -309,6 +329,94 @@
       (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450)))))]
     [else
      (entity-reset (appState-e state))]))
+
+;;; ======== COLLIDED? ========
+
+;; INPUT/OUTPUT
+; signature: collided?: appState -> List<Posn>
+; purpose:   return the List of the entities positions without the entity that collided
+;            with the player
+; header:    (define (collided? state) (list (make-posn 0 0) (make-posn 0 0)))
+
+;; TEMPLATE
+; (define (collided? state)
+;   (cond
+;     [(> 50 (distance (first   (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [(> 50 (distance (second  (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [(> 50 (distance (third   (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [(> 50 (distance (fourth  (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [(> 50 (distance (fifth   (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [(> 50 (distance (sixth   (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [(> 50 (distance (seventh (entities-positions (appState-e state)))
+;                      (player-position (appState-p state)))) ...]
+;     [else                                                   ...]))
+
+;; CODE
+(define (collided? state)
+  (cond
+    [(> 50 (distance (first (entities-positions (appState-e state))) (player-position (appState-p state))))
+     (list (make-posn 1500 0)
+           (second (entities-positions (appState-e state)))
+           (third (entities-positions (appState-e state)))
+           (fourth (entities-positions (appState-e state)))
+           (fifth (entities-positions (appState-e state)))
+           (sixth (entities-positions (appState-e state)))
+           (seventh (entities-positions (appState-e state))))]
+    [(> 50 (distance (second (entities-positions (appState-e state))) (player-position (appState-p state))))
+     (list (first (entities-positions (appState-e state)))
+           (make-posn 1500 0)
+           (third (entities-positions (appState-e state)))
+           (fourth (entities-positions (appState-e state)))
+           (fifth (entities-positions (appState-e state)))
+           (sixth (entities-positions (appState-e state)))
+           (seventh (entities-positions (appState-e state))))]
+    [(> 50 (distance (third (entities-positions (appState-e state))) (player-position (appState-p state))))
+      (list (first (entities-positions (appState-e state)))
+           (second (entities-positions (appState-e state)))
+           (make-posn 1500 0)
+           (fourth (entities-positions (appState-e state)))
+           (fifth (entities-positions (appState-e state)))
+           (sixth (entities-positions (appState-e state)))
+           (seventh (entities-positions (appState-e state))))]
+    [(> 50 (distance (fourth (entities-positions (appState-e state))) (player-position (appState-p state))))
+      (list (first (entities-positions (appState-e state)))
+           (second (entities-positions (appState-e state)))
+           (third (entities-positions (appState-e state)))
+           (make-posn 1500 0)
+           (fifth (entities-positions (appState-e state)))
+           (sixth (entities-positions (appState-e state)))
+           (seventh (entities-positions (appState-e state))))]
+    [(> 50 (distance (fifth (entities-positions (appState-e state))) (player-position (appState-p state))))
+      (list (first (entities-positions (appState-e state)))
+           (second (entities-positions (appState-e state)))
+           (third (entities-positions (appState-e state)))
+           (fourth (entities-positions (appState-e state)))
+           (make-posn 1500 0)
+           (sixth (entities-positions (appState-e state)))
+           (seventh (entities-positions (appState-e state))))]
+    [(> 50 (distance (sixth (entities-positions (appState-e state))) (player-position (appState-p state))))
+      (list (first (entities-positions (appState-e state)))
+           (second (entities-positions (appState-e state)))
+           (third (entities-positions (appState-e state)))
+           (fourth (entities-positions (appState-e state)))
+           (fifth (entities-positions (appState-e state)))
+           (make-posn 1500 0)
+           (seventh (entities-positions (appState-e state))))]
+    [(> 50 (distance (seventh (entities-positions (appState-e state))) (player-position (appState-p state))))
+      (list (first (entities-positions (appState-e state)))
+           (second (entities-positions (appState-e state)))
+           (third (entities-positions (appState-e state)))
+           (fourth (entities-positions (appState-e state)))
+           (fifth (entities-positions (appState-e state)))
+           (sixth (entities-positions (appState-e state)))
+           (make-posn 1500 0))]
+    [else (entities-positions (appState-e state))]))
 
 ;;; ======== ENTITY-RESET ========
 
