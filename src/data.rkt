@@ -45,7 +45,7 @@
 
 ; Speed
 (define BASE_SPEED 600)
-(define ENTITY_SPEED 2000)   
+(define ENTITY_SPEED 2000)
 
 ; HP sprites
 (define PL_HP (scale 0.65 (bitmap/file "../resources/heart.png")))
@@ -173,42 +173,24 @@
 
 ;--------------------------------------------------------------------------------------
 
-; a player is a structure :(make-player sprite hp position)
-;  where:
-;  - sprite   :   Image
-;  - hp       :   Number
-;  - position :   Posn
-; interpretation: a structure that represents the player's status displayed
-;                 with a `sprite` image, some `hp` life points
-;                 at position `position`             
-(define-struct player [sprite hp position] )
-
-;; Data examples
-(define INITIAL_PLAYER (make-player PL_SPRITE 5 INITIAL_PLAYER_POS) )
-(define PL1 (make-player PL_SPRITE 3 (make-posn 600 750)))
-(define PL2 (make-player PL_SPRITE 3 (make-posn 500 850)))
-
-;--------------------------------------------------------------------------------------
-
-; entities is a structure (make-entities sprites positions)
+; entities is a structure (make-entities player enemies)
 ; Where:
-;  - sprites is one of:
-;      - '()
-;      - (cons Image List<Image>)
-;  - positions is one of:
+;  - player-lp is a Number
+;  - player-pos is a Posn
+;  - enemies is one of:
 ;      - '()
 ;      - (cons Posn List<Posn>)
-; interpretation: two lists that represents all the entities' `sprites` at positions `positions` 
-(define-struct entities [sprites positions])
+; interpretation: the player's life points, position and the entities positions 
+(define-struct entities [player-lp player-pos enemies])
 ;; Data examples
-(define EMPTY  (make-entities '() '() ))
-(define KNIFES (make-entities (build-list 5 (lambda (n) KNIFE_SPRITE))
+(define PLAYER  (make-entities 5 (make-posn 500 400) '() ))
+(define E1 (make-entities 5 (make-posn 500 400)
                               (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
-(define ARROWS (make-entities (build-list 5 (lambda (n) ARROW_SPRITE))
+(define E2 (make-entities 5 (make-posn 500 400)
                               (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
-(define SWORD  (make-entities (build-list 1 (lambda (n) SWORD_SPRITE))
+(define E3  (make-entities 5 (make-posn 500 400)
                               (build-list 1 (lambda (n) (make-posn (random 400) (random 300)))) ))
-(define BALLS  (make-entities (build-list 7 (lambda (n) BALL_SPRITE))
+(define E4  (make-entities 5 INITIAL_PLAYER_POS
                               (build-list 7 (lambda (n) (make-posn (random 200) (+ 450 (random 300))))) ))
 
 ;--------------------------------------------------------------------------------------
@@ -216,7 +198,7 @@
 ; a substate is one of:
 ;  - "player"
 ;  - "boss"
-; interpretation: indicates if it is the `boss` turn or the `player` one
+; interpretation: indicates if it is the `boss` turn or the `player` turn
 
 ; a movement is one of:
 ;  - "right"
@@ -228,24 +210,25 @@
 ;                 just staying `still`
 
 ; an appState is a structure: (make-appState canvas p e s boss running?)
-;  where: - canvas      : Image
-;         - p           : player
-;         - e           : entities
-;         - s           : substate
-;         - boss        : Number
-;         - running?    : Boolean
-;         - movement    : movement
-;         - change-turn : Number
+;  where: - canvas        : Image
+;         - e             : entities
+;         - s             : substate
+;         - boss          : Number
+;         - running?      : Boolean
+;         - movement      : movement
+;         - change-turn   : Number
+;         - entities-count: Number
 ;interpretation: a structure that describes the state of the application displayed as a `canvas`
-;                that initially contains a box with a player `p` inside, the image of the boss and the images
-;                of the life points. The canvas gets updated by adding elements of the list `e` based on the `s` 
-;                and the `boss` value. When wether the `p` or the boss has a lifepoints value of 0 the `running?`
-;                is set to #false and the application quits. `movement` describes the current direction of
-;                the player `p`. `change-turn` is a counter to keep track of the tick to call a specific function when 20 seconds pass.
-(define-struct appState [canvas p e s boss running? movement change-turn])
+;                that initially contains a box with a player `e-entities player` inside, the image of the boss and the images
+;                of the life points. The canvas gets updated by adding elements of the list `e-entities enemies` based on the `s` 
+;                and the `boss` value. When wether the `e-entities player` or the boss has a lifepoints value of 0 the `running?`
+;                is set to #false and the application quits. `movement` describes the current direction of the player `e-entities player`.
+;                `change-turn` is a counter to keep track of the tick to call a specific function when 20 seconds pass.
+;                `enemies-count` keeps track of the number of entities in the state.
+(define-struct appState [canvas e s boss running? movement change-turn entities-count])
 
 ;; Data examples
-(define INITIAL_APP_STATE (make-appState BACKGROUND INITIAL_PLAYER BALLS "boss" 10 #true "still" 0))
+(define INITIAL_APP_STATE (make-appState BACKGROUND E4 "boss" 10 #true "still" 0 7))
 ;(define AP2 (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "still"))
 ;(define AP3 (make-appState BACKGROUND PL2 KNIFES "boss" 10 #true "still"))
 ;(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))

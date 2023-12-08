@@ -45,41 +45,34 @@
 (define (tick state)
   (cond
     ; check if it is the boss turn   -> see boss-tick
-    [ (< (appState-change-turn state) 499)
+    [ (< (appState-change-turn state) 500)
      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE
-                                 (collision (appState-p state) (appState-e state))
-                                 (boss-tick state))
-                    (entity-move state)
+                    (make-entities
+                     (collision
+                      (entities-player-pos (appState-e state))
+                      (entities-player-lp (appState-e state))
+                      (entities-enemies (appState-e state)))
+                     (boss-tick state)
+                     (entity-move state))
                     "boss"
                     (appState-boss state)
-                    (end? (appState-p state))
+                    (end? (entities-player-lp (appState-e state)))
                     (appState-movement state)
-                    (add1 (appState-change-turn state)))]
-    ; check if it is the player turn and display the player on the ATK button
-    [(= (appState-change-turn state) 499)
-      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE
-                                 (player-hp (appState-p state))
-                                 ATK_BOX_POSITION)
-                    BALLS
-                    "player"
-                    (appState-boss state)
-                    (appState-running? state)
-                    "still"
-                    (add1 (appState-change-turn state)))]
+                    (add1 (appState-change-turn state))
+                    (appState-entities-count state))]
     ; let the player decide which action choose
     [else
      (make-appState (appState-canvas state)
-                    (appState-p state)
-                     (make-entities
-                      (build-list 7 (lambda (n) BALL_SPRITE))
-                      (build-list 7 (lambda (n) (make-posn (- (random 200) 210) (+ (random 300) 450))))) 
+                    (make-entities
+                     (entities-player-lp (appState-e state))
+                     (entities-player-pos (appState-e state))
+                     '())
                     "player"
                     (appState-boss state)
-                    (end? (appState-p state))
+                    (end? (entities-player-lp (appState-e state)))
                     "still"
-                    (appState-change-turn state))]))
+                    (appState-change-turn state)
+                    (appState-entities-count state))]))
 
 ;;; ======== COLLISION ========
 
@@ -102,19 +95,19 @@
 ;     [else ...]))
 
 ;; CODE
-(define (collision p e)
+(define (collision player-pos player-lp enemies)
   (cond
     ;[]
     ; check if the distance is lower than the sum of the radius of the two images -> see distance
-    [(or (>= 37 (distance (first   (entities-positions e)) (player-position p)))
-         (>= 37 (distance (second  (entities-positions e)) (player-position p)))
-         (>= 37 (distance (third   (entities-positions e)) (player-position p)))
-         (>= 37 (distance (fourth  (entities-positions e)) (player-position p)))
-         (>= 37 (distance (fifth   (entities-positions e)) (player-position p)))
-         (>= 37 (distance (sixth   (entities-positions e)) (player-position p)))
-         (>= 37 (distance (seventh (entities-positions e)) (player-position p))))
-     (sub1 (player-hp p)) ]
-    [else (player-hp p)]))
+    [(or (>= 37 (distance (first   enemies) player-pos))
+         (>= 37 (distance (second  enemies) player-pos))
+         (>= 37 (distance (third   enemies) player-pos))
+         (>= 37 (distance (fourth  enemies) player-pos))
+         (>= 37 (distance (fifth   enemies) player-pos))
+         (>= 37 (distance (sixth   enemies) player-pos))
+         (>= 37 (distance (seventh enemies) player-pos)))
+     (sub1  player-lp) ]
+    [else  player-lp]))
 
 ;;; ======== DISTANCE ========
 
@@ -147,9 +140,9 @@
 ;     [else                ...]))
 
 ;; CODE
-(define (end? p)
+(define (end? player-lp)
   (cond
-    [(= (player-hp p) 0) #false]
+    [(= player-lp 0) #false]
     [else #true]))
 
 ;;; ======== BOSS-TICK ========
@@ -179,10 +172,10 @@
   (cond
     ; check if the player is inside the box  -> see boss-tick-box
     [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2))
-             (posn-x (player-position (appState-p state)))
+             (posn-x (entities-player-pos (appState-e state)))
              (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
-             (posn-y (player-position (appState-p state)))
+             (posn-y (entities-player-pos (appState-e state)))
              (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
      (boss-tick-box state)]
     ; check if the player is outside the box -> see boss-tick-border
@@ -212,12 +205,12 @@
     ; check if movement is "left" or "up" and decrements the x or y position-> see player-move
     [(or (string=? (appState-movement state) "left"  )
          (string=? (appState-movement state) "up"    ))
-     (player-move  (appState-p state) (appState-movement state) -)]
+     (player-move  (entities-player-pos (appState-e state)) (appState-movement state) -)]
     ; check if movement is "right" or "down" and increments the x or y position-> see player-move
     [(or (string=? (appState-movement state) "right" )
          (string=? (appState-movement state) "down"  ))
-     (player-move  (appState-p state) (appState-movement state) +)]
-    [else          (player-position (appState-p state))           ]))
+     (player-move  (entities-player-pos (appState-e state)) (appState-movement state) +)]
+    [else          (entities-player-pos (appState-e state))]))
 
 ;;; ======== PLAYER-MOVE  ========
 
@@ -235,14 +228,14 @@
 ;    [(or (string=? m "up")    (string=? m "down")) ... (player-position p) ...]))
 
 ;; CODE
-(define (player-move p m fun)
+(define (player-move player-pos m fun)
   (cond
     [(or (string=? m "right") (string=? m "left"))
-               (make-posn (fun (posn-x (player-position p)) (* BASE_SPEED FRAME))
-                          (posn-y (player-position p)))]
+               (make-posn (fun (posn-x player-pos) (* BASE_SPEED FRAME))
+                          (posn-y player-pos))]
     [(or (string=? m "up"   ) (string=? m "down"))
-               (make-posn (posn-x (player-position p))
-                          (fun (posn-y (player-position p)) (* BASE_SPEED FRAME)))]))
+               (make-posn (posn-x player-pos)
+                          (fun (posn-y player-pos) (* BASE_SPEED FRAME)))]))
 
 ;;; ======== BOSS-TICK-BORDER ========
 
@@ -269,18 +262,18 @@
 (define (boss-tick-border state)
   (cond
     ; check if the player is against the left border, moves the player x by 1 px before the left border
-    [(<= (posn-x (player-position (appState-p state))) (+ PL_BOX_LEFT (/ PL_WIDTH 2)))
-     (make-posn (add1 (+ PL_BOX_LEFT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state))))]
+    [(<= (posn-x (entities-player-pos (appState-e state))) (+ PL_BOX_LEFT (/ PL_WIDTH 2)))
+     (make-posn (add1 (+ PL_BOX_LEFT (/ PL_WIDTH 2))) (posn-y (entities-player-pos (appState-e state))))]
     ; check if the player is against the bottom border, moves the player y by 1 px before the bottom border
-    [(>= (posn-y (player-position (appState-p state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))
-     (make-posn (posn-x (player-position (appState-p state))) (sub1 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))]
+    [(>= (posn-y (entities-player-pos (appState-e state))) (- PL_BOX_BOTTOM (/ PL_HEIGHT 2)))
+     (make-posn (posn-x (entities-player-pos (appState-e state))) (sub1 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))]
     ; check if the player is against the right border, moves the player x by 1 px before the right border
-    [(>= (posn-x (player-position (appState-p state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
-     (make-posn (sub1 (- PL_BOX_RIGHT (/ PL_WIDTH 2))) (posn-y (player-position (appState-p state))))]
+    [(>= (posn-x (entities-player-pos (appState-e state))) (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
+     (make-posn (sub1 (- PL_BOX_RIGHT (/ PL_WIDTH 2))) (posn-y (entities-player-pos (appState-e state))))]
     ; check if the player is against the upper border, moves the player y by 1 px before the top border
-    [(<= (posn-y (player-position (appState-p state))) (+ PL_BOX_TOP (/ PL_HEIGHT 2)))
-     (make-posn (posn-x (player-position (appState-p state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2))))]
-    [else (player-position (appState-p state))]))
+    [(<= (posn-y (entities-player-pos (appState-e state))) (+ PL_BOX_TOP (/ PL_HEIGHT 2)))
+     (make-posn (posn-x (entities-player-pos (appState-e state))) (add1 (+ PL_BOX_TOP (/ PL_HEIGHT 2))))]
+    [else (entities-player-pos (appState-e state))]))
 
 ;;; ======== ENTITY-MOVE  ========
 
@@ -304,119 +297,10 @@
 ;; CODE
 (define (entity-move state)
   (cond
-    ; check if the player collided with an entity
-    [(or (>= 35 (distance (first   (entities-positions (appState-e state)))
-                          (player-position (appState-p state))))
-         (>= 35 (distance (second  (entities-positions (appState-e state)))
-                          (player-position (appState-p state))))
-         (>= 35 (distance (third   (entities-positions (appState-e state)))
-                          (player-position (appState-p state))))
-         (>= 35 (distance (fourth  (entities-positions (appState-e state)))
-                          (player-position (appState-p state))))
-         (>= 35 (distance (fifth   (entities-positions (appState-e state)))
-                          (player-position (appState-p state))))
-         (>= 35 (distance (sixth   (entities-positions (appState-e state)))
-                          (player-position (appState-p state))))
-         (>= 35 (distance (seventh (entities-positions (appState-e state)))
-                          (player-position (appState-p state)))))
-     (make-entities
-      (build-list 7 (lambda (n) BALL_SPRITE))
-      (collided? state))]
-    [(and (empty? (entities-sprites   (appState-e state)))
-          (empty? (entities-positions (appState-e state))))
-     (make-entities
-      (build-list 7 (lambda (n) BALL_SPRITE))
-      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450)))))]
+    [(empty? (entities-enemies (appState-e state)))
+      (build-list (appState-entities-count state) (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]
     [else
-     (entity-reset (appState-e state))]))
-
-;;; ======== COLLIDED? ========
-
-;; INPUT/OUTPUT
-; signature: collided?: appState -> List<Posn>
-; purpose:   return the List of the entities positions without the entity that collided
-;            with the player
-; header:    (define (collided? state) (list (make-posn 0 0) (make-posn 0 0)))
-
-;; TEMPLATE
-; (define (collided? state)
-;   (cond
-;     [(> 50 (distance (first   (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [(> 50 (distance (second  (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [(> 50 (distance (third   (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [(> 50 (distance (fourth  (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [(> 50 (distance (fifth   (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [(> 50 (distance (sixth   (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [(> 50 (distance (seventh (entities-positions (appState-e state)))
-;                      (player-position (appState-p state)))) ...]
-;     [else                                                   ...]))
-
-;; CODE
-(define (collided? state)
-  (cond
-    [(> 50 (distance (first (entities-positions (appState-e state))) (player-position (appState-p state))))
-     (list (make-posn 1500 0)
-           (second (entities-positions (appState-e state)))
-           (third (entities-positions (appState-e state)))
-           (fourth (entities-positions (appState-e state)))
-           (fifth (entities-positions (appState-e state)))
-           (sixth (entities-positions (appState-e state)))
-           (seventh (entities-positions (appState-e state))))]
-    [(> 50 (distance (second (entities-positions (appState-e state))) (player-position (appState-p state))))
-     (list (first (entities-positions (appState-e state)))
-           (make-posn 1500 0)
-           (third (entities-positions (appState-e state)))
-           (fourth (entities-positions (appState-e state)))
-           (fifth (entities-positions (appState-e state)))
-           (sixth (entities-positions (appState-e state)))
-           (seventh (entities-positions (appState-e state))))]
-    [(> 50 (distance (third (entities-positions (appState-e state))) (player-position (appState-p state))))
-      (list (first (entities-positions (appState-e state)))
-           (second (entities-positions (appState-e state)))
-           (make-posn 1500 0)
-           (fourth (entities-positions (appState-e state)))
-           (fifth (entities-positions (appState-e state)))
-           (sixth (entities-positions (appState-e state)))
-           (seventh (entities-positions (appState-e state))))]
-    [(> 50 (distance (fourth (entities-positions (appState-e state))) (player-position (appState-p state))))
-      (list (first (entities-positions (appState-e state)))
-           (second (entities-positions (appState-e state)))
-           (third (entities-positions (appState-e state)))
-           (make-posn 1500 0)
-           (fifth (entities-positions (appState-e state)))
-           (sixth (entities-positions (appState-e state)))
-           (seventh (entities-positions (appState-e state))))]
-    [(> 50 (distance (fifth (entities-positions (appState-e state))) (player-position (appState-p state))))
-      (list (first (entities-positions (appState-e state)))
-           (second (entities-positions (appState-e state)))
-           (third (entities-positions (appState-e state)))
-           (fourth (entities-positions (appState-e state)))
-           (make-posn 1500 0)
-           (sixth (entities-positions (appState-e state)))
-           (seventh (entities-positions (appState-e state))))]
-    [(> 50 (distance (sixth (entities-positions (appState-e state))) (player-position (appState-p state))))
-      (list (first (entities-positions (appState-e state)))
-           (second (entities-positions (appState-e state)))
-           (third (entities-positions (appState-e state)))
-           (fourth (entities-positions (appState-e state)))
-           (fifth (entities-positions (appState-e state)))
-           (make-posn 1500 0)
-           (seventh (entities-positions (appState-e state))))]
-    [(> 50 (distance (seventh (entities-positions (appState-e state))) (player-position (appState-p state))))
-      (list (first (entities-positions (appState-e state)))
-           (second (entities-positions (appState-e state)))
-           (third (entities-positions (appState-e state)))
-           (fourth (entities-positions (appState-e state)))
-           (fifth (entities-positions (appState-e state)))
-           (sixth (entities-positions (appState-e state)))
-           (make-posn 1500 0))]
-    [else (entities-positions (appState-e state))]))
+     (entity-reset (entities-enemies (appState-e state)))]))
 
 ;;; ======== ENTITY-RESET ========
 
@@ -434,15 +318,11 @@
 ;; CODE
 (define (entity-reset en)
   (cond
-    [(ormap (lambda (n) (<= 0 (posn-x n) 1440)) (entities-positions en))
-     (make-entities
-      (build-list 7 (lambda (n) BALL_SPRITE))
+    [(ormap (lambda (n) (<= 0 (posn-x n) 1440)) en)
       (map (lambda (n)
              (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ))
-           (entities-positions en)))]
+           en)]
     [else
-     (make-entities
-      (build-list 7 (lambda (n) BALL_SPRITE))
       (map (lambda (n)
              (make-posn (random 200) (+ 450 (random 300))))
-           (entities-positions en)))]))
+           en)]))

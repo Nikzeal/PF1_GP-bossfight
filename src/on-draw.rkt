@@ -38,19 +38,19 @@
     (list PL_SPRITE
           BS_SPRITE_N
           PL_BOX
-          (draw-lp (player-hp (appState-p as)))
+          (draw-lp (entities-player-lp (appState-e as)))
           (draw-lp (appState-boss as))
           placeholder_rec
           placeholder_rec
           ;entities
           (place-images
-           (entities-sprites (appState-e as))
-           (entities-positions (appState-e as))
+           (build-list (appState-entities-count as) (lambda (n) BALL_SPRITE))
+           (entities-enemies (appState-e as))
            (rectangle 1440 900 "solid" "transparent"))
+          ; COUNTER
           (text (number->string (appState-change-turn as)) 50 "white")
           )
-    
-    (list (player-position (appState-p as))
+    (list (entities-player-pos (appState-e as))
           BS_SPRITE_POSITION
           PL_BOX_POSITION
           LP_POSITION_PL
@@ -124,12 +124,12 @@
     (list PL_SPRITE
           BS_SPRITE_N
           PL_BOX
-          (draw-lp (player-hp (appState-p as)))
+          (draw-lp (entities-player-lp (appState-e as)))
           (draw-lp (appState-boss as))
           placeholder_rec
           placeholder_rec
           (text (number->string (appState-change-turn as)) 50 "white"))
-    (list (player-position (appState-p as))
+    (list (entities-player-pos (appState-e as))
           BS_SPRITE_POSITION
           PL_BOX_POSITION
           LP_POSITION_PL
@@ -172,7 +172,7 @@
 ;; CODE 
 (define (drawAppState as)
   (cond
-    [(and (string=? (appState-s as) "boss") (empty? (entities-sprites (appState-e as)))) (draw-turn as)]
+    [(empty? (entities-enemies (appState-e as))) (draw-turn as)]
     [else (draw-entities as)]
     ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (draw-action as)]
     ))

@@ -47,27 +47,28 @@
     ; check if it is the boss turn   -> see boss-key function
     [(string=? (appState-s state) "boss")
      (make-appState (appState-canvas state)
-                    (appState-p state)
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     (boss-key key)
-                    (appState-change-turn state))]
+                    (appState-change-turn state)
+                    (appState-entities-count state))]
     ; check if it is the player turn -> see player-key funcion
-    [(and (string=? (appState-s state) "player") (= (distance (player-position (appState-p state)) ATK_BOX_POSITION) 0))
+    [(and (string=? (appState-s state) "player") (= (distance (entities-player-pos (appState-e state)) ATK_BOX_POSITION) 0))
      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE
-                                 (player-hp (appState-p state))
-                                 (player-key key (appState-p state)))
-                    (appState-e state)
+                    (make-entities
+                     (entities-player-lp (appState-e state))
+                     (player-key key (entities-player-pos (appState-e state)))
+                     (entities-enemies (appState-e state)))
                     (appState-s state)
                     ;(player-attack (appState-p state) key (appState-boss state))
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
-                    (appState-change-turn state))]
-     [(and (string=? (appState-s state) "player") (= (distance (player-position (appState-p state)) HEAL_BOX_POSITION) 0)) (player-heal state key)]
+                    (appState-change-turn state)
+                    (appState-entities-count state))]
+     [(and (string=? (appState-s state) "player") (= (distance (entities-player-pos (appState-e state)) HEAL_BOX_POSITION) 0)) (player-heal state key)]
     [else state]))
 
 ;;; ======== PLAYER-HEAL ========
@@ -86,30 +87,33 @@
 ;; CODE
 (define (player-heal state key)
   (cond
-    [(and (string=? key "z") (< (player-hp (appState-p state)) 5))
+    [(and (string=? key "z") (< (entities-player-lp (appState-e state)) 5))
      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE
-                                 (add1 (player-hp (appState-p state)))
-                                 (player-position (appState-p state)))
-                    (appState-e state)
+                    (make-entities
+                     (add1 (entities-player-lp (appState-e state)))
+                     (entities-player-pos (appState-e state))
+                     (entities-enemies (appState-e state)))
                     "boss"
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
-                    0)]
+                    0
+                    (appState-entities-count state))]
     [else
      (make-appState (appState-canvas state)
-                    (make-player PL_SPRITE
-                                 (player-hp (appState-p state))
-                                 (player-key key (appState-p state)))
-                    (appState-e state)
+                    (make-entities
+                     (entities-player-lp (appState-e state))
+                     (player-key key (entities-player-pos (appState-e state)))
+                     (entities-enemies (appState-e state)))
                     (appState-s state)
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
-                    (appState-change-turn state))]))
+                    (appState-change-turn state)
+                    (appState-entities-count state))]))
 
-;;; ======== PLAYER-HEAL ========
+;;; ======== PLAYER-ATTACK ========
+
 ;; INPUT/OUTPUT
 ; signature: player-attack: player KeyEvent -> Number
 ; purpose:   attacks the boss when player presses z
@@ -160,14 +164,14 @@
 ;     [else                ...]))
 
 ;; CODE
-(define (player-key key player)
+(define (player-key key player-pos)
   (cond
     ; check if the pressed key is "left" and place the player on the attack box
     [(key=? key "left")  ATK_BOX_POSITION        ]
     ; check if the pressed key is "right" and place the player on the heal box
     [(key=? key "right") HEAL_BOX_POSITION       ]
     ; if any other key is pressed, it returns the current player position
-    [else                (player-position player)]))
+    [else                player-pos]))
 
 ;--------------------------------------------------------------------------------------
 
@@ -196,12 +200,13 @@
 (define (handle-release state key)
   (cond
   [(or (key=? key "left") (key=? key "right") (key=? key "up") (key=? key "down"))
-   (make-appState (appState-canvas state)
-                 (appState-p state)
-                 (appState-e state)
-                 (appState-s state)
-                 (appState-boss state)
-                 (appState-running? state)
-                 "still"
-                 (appState-change-turn state))]
+   (make-appState
+    (appState-canvas state)
+    (appState-e state)
+    (appState-s state)
+    (appState-boss state)
+    (appState-running? state)
+    "still"
+    (appState-change-turn state)
+    (appState-entities-count state))]
   [else state]))
