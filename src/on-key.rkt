@@ -52,53 +52,48 @@
                     (appState-boss state)
                     (appState-running? state)
                     (boss-key key)
-                    (appState-change-turn state)
-                    (appState-entities-count state))]
-    ; check if it is the player turn -> see player-key funcion
-    [(and (string=? (appState-s state) "player") (= (distance (entities-player-pos (appState-e state)) ATK_BOX_POSITION) 0))
-     (make-appState (appState-canvas state)
-                    (make-entities
-                     (entities-player-lp (appState-e state))
-                     (player-key key (entities-player-pos (appState-e state)))
-                     (entities-enemies (appState-e state)))
-                    (appState-s state)
-                    ;(player-attack (appState-p state) key (appState-boss state))
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state)
-                    (appState-change-turn state)
-                    (appState-entities-count state))]
-     [(and (string=? (appState-s state) "player") (= (distance (entities-player-pos (appState-e state)) HEAL_BOX_POSITION) 0)) (player-heal state key)]
+                    (appState-change-turn state))]
+     [ (string=? (appState-s state) "player") (player-act state key)]
     [else state]))
 
-;;; ======== PLAYER-HEAL ========
+;;; ======== PLAYER-ACT ========
 
 ;; INPUT/OUTPUT
-; signature: player-heal: appState KeyEvent -> Number
-; purpose:   heals the player when player presses z
-; header:    (define (player-heal state key) 5)
+; signature: player-act: appState KeyEvent -> Number
+; purpose:   attacks the boss or heals the player when player presses z
+; header:    (define (player-act state key) INITIAL_APP_STATE)
 
 ;; TEMPLATE
-;(define (player-attack state key)
+;(define (player-act state key)
 ;  (cond
 ;   [(and (= key "z") (< (player-hp player) 5)) ... (player-hp player) ...]
 ;    [else ... (player-hp) ...]))
 
 ;; CODE
-(define (player-heal state key)
+(define (player-act state key)
   (cond
-    [(and (string=? key "z") (< (entities-player-lp (appState-e state)) 5))
+    [(and (= (distance (entities-player-pos (appState-e state)) HEAL_BOX_POSITION) 0) (string=? key "z") (< (entities-player-lp (appState-e state)) 5))
      (make-appState (appState-canvas state)
                     (make-entities
                      (add1 (entities-player-lp (appState-e state)))
                      (entities-player-pos (appState-e state))
-                     (entities-enemies (appState-e state)))
+                     (entity-move state))
                     "boss"
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
-                    0
-                    (appState-entities-count state))]
+                    0)]
+    [(and (= (distance (entities-player-pos (appState-e state)) ATK_BOX_POSITION) 0) (string=? key "z"))
+     (make-appState (appState-canvas state)
+                    (make-entities
+                     (entities-player-lp (appState-e state))
+                     (entities-player-pos (appState-e state))
+                     (entity-move state))
+                    "boss"
+                    (sub1 (appState-boss state))
+                    (appState-running? state)
+                    (appState-movement state)
+                    0)]
     [else
      (make-appState (appState-canvas state)
                     (make-entities
@@ -109,15 +104,7 @@
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
-                    (appState-change-turn state)
-                    (appState-entities-count state))]))
-
-;;; ======== PLAYER-ATTACK ========
-
-;; INPUT/OUTPUT
-; signature: player-attack: player KeyEvent -> Number
-; purpose:   attacks the boss when player presses z
-; header:    (define (player-attack player key) 5)
+                    (appState-change-turn state))]))
 
 ;;; ======== BOSS-KEY ========
 
@@ -207,6 +194,5 @@
     (appState-boss state)
     (appState-running? state)
     "still"
-    (appState-change-turn state)
-    (appState-entities-count state))]
+    (appState-change-turn state))]
   [else state]))

@@ -20,7 +20,6 @@
 ; purpose:   checks if the application has quit or not, i.e. the player has won or lost
 ; header:    (define (quit? appState) #true)
 
-
 ;; EXAMPLES
 (check-expect (quit? INITIAL_APP_STATE) #false)
 (check-expect (quit? AP4) #true)

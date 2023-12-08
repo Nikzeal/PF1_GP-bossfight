@@ -45,21 +45,31 @@
 (define (tick state)
   (cond
     ; check if it is the boss turn   -> see boss-tick
-    [ (< (appState-change-turn state) 500)
+    [(< (appState-change-turn state) 499)
+      (make-appState (appState-canvas state)
+                     (make-entities
+                      (collision
+                       (entities-player-pos (appState-e state))
+                       (entities-player-lp (appState-e state))
+                       (entities-enemies (appState-e state)))
+                      (boss-tick state)
+                      (entity-move state))
+                     "boss"
+                     (appState-boss state)
+                     (end? (entities-player-lp (appState-e state)))
+                     (appState-movement state)
+                     (add1 (appState-change-turn state)))]
+    [(= (appState-change-turn state) 499)
      (make-appState (appState-canvas state)
                     (make-entities
-                     (collision
-                      (entities-player-pos (appState-e state))
-                      (entities-player-lp (appState-e state))
-                      (entities-enemies (appState-e state)))
-                     (boss-tick state)
-                     (entity-move state))
-                    "boss"
+                     (entities-player-lp (appState-e state))
+                     ATK_BOX_POSITION
+                     '())
+                    "player"
                     (appState-boss state)
                     (end? (entities-player-lp (appState-e state)))
-                    (appState-movement state)
-                    (add1 (appState-change-turn state))
-                    (appState-entities-count state))]
+                    "still"
+                    (add1 (appState-change-turn state)))]
     ; let the player decide which action choose
     [else
      (make-appState (appState-canvas state)
@@ -71,8 +81,7 @@
                     (appState-boss state)
                     (end? (entities-player-lp (appState-e state)))
                     "still"
-                    (appState-change-turn state)
-                    (appState-entities-count state))]))
+                    (appState-change-turn state))]))
 
 ;;; ======== COLLISION ========
 
@@ -97,17 +106,9 @@
 ;; CODE
 (define (collision player-pos player-lp enemies)
   (cond
-    ;[]
-    ; check if the distance is lower than the sum of the radius of the two images -> see distance
-    [(or (>= 37 (distance (first   enemies) player-pos))
-         (>= 37 (distance (second  enemies) player-pos))
-         (>= 37 (distance (third   enemies) player-pos))
-         (>= 37 (distance (fourth  enemies) player-pos))
-         (>= 37 (distance (fifth   enemies) player-pos))
-         (>= 37 (distance (sixth   enemies) player-pos))
-         (>= 37 (distance (seventh enemies) player-pos)))
-     (sub1  player-lp) ]
-    [else  player-lp]))
+    [(ormap (lambda (n) (>= 37 (distance n player-pos))) enemies)
+     (sub1  player-lp)]
+    [else   player-lp]))
 
 ;;; ======== DISTANCE ========
 
@@ -293,14 +294,15 @@
 ;          ... FRAME                                   ...
 ;          ... (entities-positions (appState-e state)) ...]))
 
-
 ;; CODE
 (define (entity-move state)
   (cond
     [(empty? (entities-enemies (appState-e state)))
-      (build-list (appState-entities-count state) (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]
+      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]
+    [(ormap (lambda (n) (>= 37 (distance n (entities-player-pos (appState-e state))))) (entities-enemies (appState-e state)))
+     (filter (lambda (n) (< 37 (distance n (entities-player-pos (appState-e state))))) (entities-enemies (appState-e state)))]
     [else
-     (entity-reset (entities-enemies (appState-e state)))]))
+     (entity-reset (entities-enemies (appState-e state)) (appState-boss state))]))
 
 ;;; ======== ENTITY-RESET ========
 
@@ -315,14 +317,17 @@
 ;           ... (entities-positions en) ...]
 ;    [else  ... (entities-positions en) ...]))
 
+
 ;; CODE
-(define (entity-reset en)
+(define (entity-reset en boss)
   (cond
-    [(ormap (lambda (n) (<= 0 (posn-x n) 1440)) en)
+    [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) (<= boss 5))
       (map (lambda (n)
-             (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ))
+             (make-posn (+ (posn-x n) (* (random 500 5000) FRAME)) (+ (posn-y n) (* (random -200 300) FRAME)) ))
+           en)]
+    [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) (> boss 5))
+      (map (lambda (n)
+             (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ) )
            en)]
     [else
-      (map (lambda (n)
-             (make-posn (random 200) (+ 450 (random 300))))
-           en)]))
+      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]))

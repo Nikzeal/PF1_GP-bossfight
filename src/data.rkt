@@ -148,6 +148,35 @@
 ; Sword (entity)
 (define SWORD_SPRITE (bitmap/file "../resources/sword.png"))
 
+
+; Menu canvas
+(define MENU_CANVAS (place-images
+   (list
+    (text "PLAY" 60 "yellow")
+    (text "CREDITS" 60 "white")
+   )
+   (list
+    (make-posn 720 400)
+    (make-posn 720 500)
+   )
+   BACKGROUND))
+
+; Gameover canvas
+(define GAMEOVER_CANVAS (place-images
+   (list 
+   )
+   (list 
+   )
+   BACKGROUND))
+
+; Victory canvas
+(define VICTORY_CANVAS (place-images
+   (list 
+   )
+   (list 
+   )
+   BACKGROUND))
+
 ; Initial canvas
 (define INITIAL_CANVAS (place-images
    (list PL_SPRITE
@@ -196,8 +225,11 @@
 ;--------------------------------------------------------------------------------------
 
 ; a substate is one of:
+;  - "menu"
 ;  - "player"
 ;  - "boss"
+;  - "lost"
+;  - "win"
 ; interpretation: indicates if it is the `boss` turn or the `player` turn
 
 ; a movement is one of:
@@ -225,10 +257,10 @@
 ;                is set to #false and the application quits. `movement` describes the current direction of the player `e-entities player`.
 ;                `change-turn` is a counter to keep track of the tick to call a specific function when 20 seconds pass.
 ;                `enemies-count` keeps track of the number of entities in the state.
-(define-struct appState [canvas e s boss running? movement change-turn entities-count])
+(define-struct appState [canvas e s boss running? movement change-turn])
 
 ;; Data examples
-(define INITIAL_APP_STATE (make-appState BACKGROUND E4 "boss" 10 #true "still" 0 7))
+(define INITIAL_APP_STATE (make-appState BACKGROUND E4 "boss" 10 #true "still" 0))
 ;(define AP2 (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "still"))
 ;(define AP3 (make-appState BACKGROUND PL2 KNIFES "boss" 10 #true "still"))
 ;(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))

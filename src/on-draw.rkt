@@ -44,11 +44,12 @@
           placeholder_rec
           ;entities
           (place-images
-           (build-list (appState-entities-count as) (lambda (n) BALL_SPRITE))
+           (build-list (length (entities-enemies (appState-e as))) (lambda (n) BALL_SPRITE))
            (entities-enemies (appState-e as))
            (rectangle 1440 900 "solid" "transparent"))
           ; COUNTER
           (text (number->string (appState-change-turn as)) 50 "white")
+          (text (number->string (length (entities-enemies (appState-e as)))) 50 "white")
           )
     (list (entities-player-pos (appState-e as))
           BS_SPRITE_POSITION
@@ -58,7 +59,8 @@
           ATK_BOX_POSITION
           HEAL_BOX_POSITION
           (make-posn 720 450)
-          (make-posn 100 100))
+          (make-posn 100 100)
+          (make-posn 100 800))
     BACKGROUND))
 
 
