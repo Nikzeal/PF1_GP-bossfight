@@ -14,11 +14,13 @@
 (define BACKGROUND (rectangle 1440 900 "solid" "black"))
 
 ; Buttons
-(define placeholder_rec (rectangle 150 50 "outline" (pen "white" 5 "solid" "round" "bevel")))
+(define ATK_BOX (bitmap/file "../resources/atk.jpeg"))
+(define HEAL_BOX (bitmap/file "../resources/heal.jpeg"))
 (define ATK_BOX_POSITION (make-posn 500 800))
 (define HEAL_BOX_POSITION (make-posn 900 800))
 (define PLAY_TEXT_POS (make-posn 720 400))
 (define CREDITS_TEXT_POS (make-posn 720 500))
+
 
 ; Player box
 (define PL_BOX (rectangle 400 300 "outline" (pen "white" 10 "solid" "round" "bevel")))
@@ -175,8 +177,8 @@
          PL_BOX
          HP_SPRITE_5
          HP_SPRITE_10
-         placeholder_rec
-         placeholder_rec)
+         ATK_BOX
+         HEAL_BOX)
    (list INITIAL_PLAYER_POS
          BS_SPRITE_POSITION
          PL_BOX_POSITION
@@ -252,7 +254,7 @@
 (define-struct appState [canvas e s boss running? movement change-turn])
 
 ;; Data examples
-(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 10  #true "still" 0))
-(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 10 #true "still" 0))
+(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 6  #true "still" 0))
+(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 6 #true "still" 0))
 (define WIN_APP_STATE  (make-appState BACKGROUND NONE  "win" 0  #false "still" 0))
 (define LOST_APP_STATE (make-appState BACKGROUND NONE "lost" 0  #false "still" 0))

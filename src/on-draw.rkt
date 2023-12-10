@@ -36,12 +36,14 @@
 (define (draw-entities as)
    (place-images
     (list PL_SPRITE
-          BS_SPRITE_N
+          (if (> (appState-boss as) 5)
+              BS_SPRITE_N
+              BS_SPRITE_R)
           PL_BOX
           (draw-lp (entities-player-lp (appState-e as)))
           (draw-lp (appState-boss as))
-          placeholder_rec
-          placeholder_rec
+          ATK_BOX
+          HEAL_BOX
           ;entities
           (place-images
            (build-list (length (entities-enemies (appState-e as))) (lambda (n) BALL_SPRITE))
@@ -124,12 +126,14 @@
 (define (draw-turn as)
    (place-images
     (list PL_SPRITE
-          BS_SPRITE_N
+          (if (> (appState-boss as) 5)
+              BS_SPRITE_N
+              BS_SPRITE_R)
           PL_BOX
           (draw-lp (entities-player-lp (appState-e as)))
           (draw-lp (appState-boss as))
-          placeholder_rec
-          placeholder_rec
+          ATK_BOX
+          HEAL_BOX
           (text (number->string (appState-change-turn as)) 50 "white"))
     (list (entities-player-pos (appState-e as))
           BS_SPRITE_POSITION
@@ -154,8 +158,26 @@
                            "white"))
    )
    (list
-    (make-posn 720 400)
-    (make-posn 720 500)
+    PLAY_TEXT_POS
+    CREDITS_TEXT_POS
+   )
+   BACKGROUND))
+
+(define (draw-credits as)
+  (place-images
+   (list
+    (text "PLAY" 60 (if (= (distance (entities-player-pos (appState-e as)) PLAY_TEXT_POS) 0)
+                           "yellow"
+                           "white"))
+    (text "CREDITS" 60 (if (= (distance (entities-player-pos (appState-e as)) CREDITS_TEXT_POS) 0)
+                           "yellow"
+                           "white"))
+    (text "Nicolo' La Cara & Mattia Palladino" 50 "red")
+   )
+   (list
+    PLAY_TEXT_POS
+    CREDITS_TEXT_POS
+    (make-posn 720 700)
    )
    BACKGROUND))
 ;;; ======== DRAW-STATE ========
@@ -192,6 +214,7 @@
 (define (drawAppState as)
   (cond
     [(string=? (appState-s as) "menu") (draw-menu as)]
+    [(string=? (appState-s as) "credits") (draw-credits as)]
     ;[(string=? "lost") (draw-lost as)]
     ;[(string=? "win")  (draw-win as)]
     ; boss and player's turn

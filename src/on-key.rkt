@@ -44,7 +44,7 @@
 ;; CODE
 (define (handle-key state key)
   (cond
-    [(string=? (appState-s state) "menu")
+    [(or (string=? (appState-s state) "menu") (string=? (appState-s state) "credits"))
      (make-appState (appState-canvas state)
                     (make-entities
                      (entities-player-lp (appState-e state))
@@ -86,7 +86,7 @@
 (define (menu-select key player-pos)
   (cond
     [(and (key=? key "\r") (= 0 (distance player-pos PLAY_TEXT_POS)))   "boss"]
-    [(and (key=? key "\r") (= 0 (distance player-pos CREDITS_TEXT_POS))) "boss"]
+    [(and (key=? key "\r") (= 0 (distance player-pos CREDITS_TEXT_POS))) "credits"]
     [else               "menu"]))
 
 ;;; ======== MENU-KEY ========
