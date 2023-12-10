@@ -7,7 +7,7 @@
 (require racket/base)
 
 (require "data.rkt")
-
+(require "on-tick.rkt")
 (provide (all-defined-out))
 
 ;--------------------------------------------------------------------------------------
@@ -141,6 +141,23 @@
           (make-posn 100 100))
     BACKGROUND))
 
+
+
+(define (draw-menu as)
+  (place-images
+   (list
+    (text "PLAY" 60 (if (= (distance (entities-player-pos (appState-e as)) PLAY_TEXT_POS) 0)
+                           "yellow"
+                           "white"))
+    (text "CREDITS" 60 (if (= (distance (entities-player-pos (appState-e as)) CREDITS_TEXT_POS) 0)
+                           "yellow"
+                           "white"))
+   )
+   (list
+    (make-posn 720 400)
+    (make-posn 720 500)
+   )
+   BACKGROUND))
 ;;; ======== DRAW-STATE ========
 
 ;; INPUT/OUTPUT
@@ -174,7 +191,13 @@
 ;; CODE 
 (define (drawAppState as)
   (cond
-    [(empty? (entities-enemies (appState-e as))) (draw-turn as)]
+    [(string=? (appState-s as) "menu") (draw-menu as)]
+    ;[(string=? "lost") (draw-lost as)]
+    ;[(string=? "win")  (draw-win as)]
+    ; boss and player's turn
+    [(and (empty? (entities-enemies (appState-e as)))
+          (or (string=? (appState-s as) "boss")
+              (string=? (appState-s as) "player")))  (draw-turn as)]
     [else (draw-entities as)]
     ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (draw-action as)]
     ))

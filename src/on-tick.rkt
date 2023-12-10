@@ -44,8 +44,16 @@
 ;; CODE
 (define (tick state)
   (cond
+    [(string=? (appState-s state) "menu")
+     (make-appState (appState-canvas state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (end? (entities-player-lp (appState-e state)))
+                    (appState-movement state)
+                    (appState-change-turn state))]
     ; check if it is the boss turn   -> see boss-tick
-    [(< (appState-change-turn state) 499)
+    [(and (< (appState-change-turn state) 499) (string=? (appState-s state) "boss"))
       (make-appState (appState-canvas state)
                      (make-entities
                       (collision
@@ -73,14 +81,11 @@
     ; let the player decide which action choose
     [else
      (make-appState (appState-canvas state)
-                    (make-entities
-                     (entities-player-lp (appState-e state))
-                     (entities-player-pos (appState-e state))
-                     '())
-                    "player"
+                    (appState-e state)
+                    (appState-s state)
                     (appState-boss state)
                     (end? (entities-player-lp (appState-e state)))
-                    "still"
+                    (appState-movement state)
                     (appState-change-turn state))]))
 
 ;;; ======== COLLISION ========

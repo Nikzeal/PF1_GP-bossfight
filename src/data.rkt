@@ -17,6 +17,8 @@
 (define placeholder_rec (rectangle 150 50 "outline" (pen "white" 5 "solid" "round" "bevel")))
 (define ATK_BOX_POSITION (make-posn 500 800))
 (define HEAL_BOX_POSITION (make-posn 900 800))
+(define PLAY_TEXT_POS (make-posn 720 400))
+(define CREDITS_TEXT_POS (make-posn 720 500))
 
 ; Player box
 (define PL_BOX (rectangle 400 300 "outline" (pen "white" 10 "solid" "round" "bevel")))
@@ -149,17 +151,6 @@
 (define SWORD_SPRITE (bitmap/file "../resources/sword.png"))
 
 
-; Menu canvas
-(define MENU_CANVAS (place-images
-   (list
-    (text "PLAY" 60 "yellow")
-    (text "CREDITS" 60 "white")
-   )
-   (list
-    (make-posn 720 400)
-    (make-posn 720 500)
-   )
-   BACKGROUND))
 
 ; Gameover canvas
 (define GAMEOVER_CANVAS (place-images
@@ -213,6 +204,7 @@
 (define-struct entities [player-lp player-pos enemies])
 ;; Data examples
 (define PLAYER  (make-entities 5 (make-posn 500 400) '() ))
+(define MENU  (make-entities 5 (make-posn 720 400) '() ))
 (define E1 (make-entities 5 (make-posn 500 400)
                               (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
 (define E2 (make-entities 5 (make-posn 500 400)
@@ -260,7 +252,7 @@
 (define-struct appState [canvas e s boss running? movement change-turn])
 
 ;; Data examples
-(define INITIAL_APP_STATE (make-appState BACKGROUND E4 "boss" 10 #true "still" 0))
-;(define AP2 (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "still"))
-;(define AP3 (make-appState BACKGROUND PL2 KNIFES "boss" 10 #true "still"))
-;(define AP4 (make-appState BACKGROUND INITIAL_PLAYER NONE "player" 10 #false "still"))
+(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 10  #true "still" 0))
+(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 10 #true "still" 0))
+(define WIN_APP_STATE  (make-appState BACKGROUND NONE  "win" 0  #false "still" 0))
+(define LOST_APP_STATE (make-appState BACKGROUND NONE "lost" 0  #false "still" 0))

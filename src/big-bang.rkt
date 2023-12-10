@@ -40,7 +40,7 @@
 
 ;;; ======== BIG-BANG ========
 
-(big-bang INITIAL_APP_STATE
+(big-bang MENU_APP_STATE
    (on-tick tick 1/50)
    (on-key handle-key)
    (on-release handle-release)

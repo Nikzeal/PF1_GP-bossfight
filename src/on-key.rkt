@@ -44,6 +44,17 @@
 ;; CODE
 (define (handle-key state key)
   (cond
+    [(string=? (appState-s state) "menu")
+     (make-appState (appState-canvas state)
+                    (make-entities
+                     (entities-player-lp (appState-e state))
+                     (menu-key key (entities-player-pos (appState-e state)))
+                     (entities-enemies (appState-e state)))
+                    (menu-select key (entities-player-pos (appState-e state)))
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    (appState-change-turn state))]
     ; check if it is the boss turn   -> see boss-key function
     [(string=? (appState-s state) "boss")
      (make-appState (appState-canvas state)
@@ -53,8 +64,52 @@
                     (appState-running? state)
                     (boss-key key)
                     (appState-change-turn state))]
-     [ (string=? (appState-s state) "player") (player-act state key)]
+     [(string=? (appState-s state) "player") (player-act state key)]
     [else state]))
+
+
+;;; ======== MENU-SELECT ========
+
+;; INPUT/OUTPUT
+; signature: menu-key: Key -> Number
+; purpose:   handles the key events for the menu screen
+; header:    (define (menu-key state key) 0)
+
+;; TEMPLATE
+; (define (menu-key key)
+;   (cond
+;     [(key=? key "up")  ...]
+;     [(key=? key "down") ...]
+;     [else                ...]))
+
+;; CODE
+(define (menu-select key player-pos)
+  (cond
+    [(and (key=? key "\r") (= 0 (distance player-pos PLAY_TEXT_POS)))   "boss"]
+    [(and (key=? key "\r") (= 0 (distance player-pos CREDITS_TEXT_POS))) "boss"]
+    [else               "menu"]))
+
+;;; ======== MENU-KEY ========
+
+;; INPUT/OUTPUT
+; signature: menu-key: Key -> Number
+; purpose:   handles the key events for the menu screen
+; header:    (define (menu-key state key) 0)
+
+;; TEMPLATE
+; (define (menu-key key)
+;   (cond
+;     [(key=? key "up")  ...]
+;     [(key=? key "down") ...]
+;     [else                ...]))
+
+;; CODE
+(define (menu-key key player-pos)
+  (cond
+    [(key=? key "up")   PLAY_TEXT_POS]
+    [(key=? key "down") CREDITS_TEXT_POS]
+    [else               player-pos]))
+
 
 ;;; ======== PLAYER-ACT ========
 
