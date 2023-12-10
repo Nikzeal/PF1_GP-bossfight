@@ -53,6 +53,28 @@
                     (appState-movement state)
                     (appState-change-turn state))]
     ; check if it is the boss turn   -> see boss-tick
+    [(and (< (appState-change-turn state) 1) (string=? (appState-s state) "boss"))
+      (make-appState (appState-canvas state)
+                     (make-entities
+                      (entities-player-lp (appState-e state))
+                      PL_BOX_POSITION
+                      (entities-enemies (appState-e state)))
+                     "boss"
+                     (appState-boss state)
+                     (end? (entities-player-lp (appState-e state)))
+                     (appState-movement state)
+                     (add1 (appState-change-turn state)))]
+    [(and (< (appState-change-turn state) 30) (string=? (appState-s state) "boss"))
+      (make-appState (appState-canvas state)
+                     (make-entities
+                      (entities-player-lp (appState-e state))
+                      (boss-tick state)
+                      (entities-enemies (appState-e state)))
+                     "boss"
+                     (appState-boss state)
+                     (end? (entities-player-lp (appState-e state)))
+                     (appState-movement state)
+                     (add1 (appState-change-turn state)))]
     [(and (< (appState-change-turn state) 499) (string=? (appState-s state) "boss"))
       (make-appState (appState-canvas state)
                      (make-entities
