@@ -52,6 +52,10 @@
           ; COUNTER
           (text (number->string (appState-change-turn as)) 50 "white")
           (text (number->string (length (entities-enemies (appState-e as)))) 50 "white")
+          (cond
+            [(= (entities-player-lp (appState-e as)) 0) (text "GAME OVER" 80 "white") ]
+            [(= (appState-boss as) 0) (text "YOU WIN" 80 "white")]
+            [else (rectangle 0 0 "solid" "transparent")])
           )
     (list (entities-player-pos (appState-e as))
           BS_SPRITE_POSITION
@@ -62,7 +66,8 @@
           HEAL_BOX_POSITION
           (make-posn 720 450)
           (make-posn 100 100)
-          (make-posn 100 800))
+          (make-posn 100 800)
+          (make-posn 720 500))
     BACKGROUND))
 
 

@@ -156,17 +156,25 @@
 
 ; Gameover canvas
 (define GAMEOVER_CANVAS (place-images
-   (list 
+   (list
+    (text "GAME OVER" 80 "white")
+    (text "Press r to retry" 30 "yellow")
    )
-   (list 
+   (list
+    (make-posn 720 400)
+    (make-posn 720 600)
    )
    BACKGROUND))
 
 ; Victory canvas
 (define VICTORY_CANVAS (place-images
-   (list 
+   (list
+    (text "YOU WIN" 80 "white")
+    (text "Press r to restart the game" 30 "yellow")
    )
-   (list 
+   (list
+    (make-posn 720 400)
+    (make-posn 720 600)
    )
    BACKGROUND))
 

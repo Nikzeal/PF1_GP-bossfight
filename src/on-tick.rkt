@@ -49,7 +49,7 @@
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
-                    (end? (entities-player-lp (appState-e state)))
+                    (end? (appState-boss state) (entities-player-lp (appState-e state)))
                     (appState-movement state)
                     (appState-change-turn state))]
     ; check if it is the boss turn   -> see boss-tick
@@ -64,7 +64,7 @@
                       (entity-move state))
                      "boss"
                      (appState-boss state)
-                     (end? (entities-player-lp (appState-e state)))
+                     (end? (appState-boss state) (entities-player-lp (appState-e state)))
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
     [(= (appState-change-turn state) 499)
@@ -84,7 +84,7 @@
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
-                    (end? (entities-player-lp (appState-e state)))
+                    (end? (appState-boss state) (entities-player-lp (appState-e state)))
                     (appState-movement state)
                     (appState-change-turn state))]))
 
@@ -146,9 +146,9 @@
 ;     [else                ...]))
 
 ;; CODE
-(define (end? player-lp)
+(define (end? boss-lp player-lp)
   (cond
-    [(= player-lp 0) #false]
+    [(or (= player-lp 0) (= boss-lp 0)) #false]
     [else #true]))
 
 ;;; ======== BOSS-TICK ========
