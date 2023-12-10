@@ -44,6 +44,8 @@
 ;; CODE
 (define (handle-key state key)
   (cond
+    [(string=? (appState-s state) "end")
+     (end? key state)]
     [(or (string=? (appState-s state) "menu") (string=? (appState-s state) "credits"))
      (make-appState (appState-canvas state)
                     (make-entities
@@ -67,6 +69,41 @@
      [(string=? (appState-s state) "player") (player-act state key)]
     [else state]))
 
+
+;;; ======== END? ========
+
+;; INPUT/OUTPUT
+; signature: end?: key appState  -> appState
+; purpose:   quit the big-bang whenever the game has ended (lost or won)
+; header:    (define (end? p) #false)
+
+;; TEMPLATE
+; (define (end? p)
+;   (cond
+;     [(= (player-hp p) 0) ...]
+;     [else                ...]))
+
+;; CODE
+(define (end? key state)
+  (cond
+    [(string=? key "q")
+     (make-appState (appState-canvas state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    #false
+                    (appState-movement state)
+                    (appState-change-turn state))]
+    [(string=? key "r")
+     GAME_APP_STATE]
+    [else
+     (make-appState (appState-canvas state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    (appState-change-turn state))]))
 
 ;;; ======== MENU-SELECT ========
 

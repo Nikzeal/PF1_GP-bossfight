@@ -44,12 +44,20 @@
 ;; CODE
 (define (tick state)
   (cond
+    [(or (string=? (appState-s state) "win") (string=? (appState-s state) "lost"))
+     (make-appState (appState-canvas state)
+                    (appState-e state)
+                    "end"
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    (appState-change-turn state))]
     [(string=? (appState-s state) "menu")
      (make-appState (appState-canvas state)
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
-                    (end? (appState-boss state) (entities-player-lp (appState-e state)))
+                    (appState-running? state)
                     (appState-movement state)
                     (appState-change-turn state))]
     ; check if it is the boss turn   -> see boss-tick
@@ -59,9 +67,9 @@
                       (entities-player-lp (appState-e state))
                       PL_BOX_POSITION
                       (entities-enemies (appState-e state)))
-                     "boss"
+                     (appState-s state)
                      (appState-boss state)
-                     (end? (entities-player-lp (appState-e state)))
+                     (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
     [(and (< (appState-change-turn state) 30) (string=? (appState-s state) "boss"))
@@ -70,9 +78,9 @@
                       (entities-player-lp (appState-e state))
                       (boss-tick state)
                       (entities-enemies (appState-e state)))
-                     "boss"
+                     (appState-s state)
                      (appState-boss state)
-                     (end? (entities-player-lp (appState-e state)))
+                     (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
     [(and (< (appState-change-turn state) 499) (string=? (appState-s state) "boss"))
@@ -84,9 +92,9 @@
                        (entities-enemies (appState-e state)))
                       (boss-tick state)
                       (entity-move state))
-                     "boss"
+                     (end! (appState-s state) (appState-boss state) (entities-player-lp (appState-e state)))
                      (appState-boss state)
-                     (end? (appState-boss state) (entities-player-lp (appState-e state)))
+                     (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
     [(= (appState-change-turn state) 499)
@@ -97,7 +105,7 @@
                      '())
                     "player"
                     (appState-boss state)
-                    (end? (entities-player-lp (appState-e state)))
+                    (appState-running? state)
                     "still"
                     (add1 (appState-change-turn state)))]
     ; let the player decide which action choose
@@ -106,7 +114,7 @@
                     (appState-e state)
                     (appState-s state)
                     (appState-boss state)
-                    (end? (appState-boss state) (entities-player-lp (appState-e state)))
+                    (appState-running? state)
                     (appState-movement state)
                     (appState-change-turn state))]))
 
@@ -154,24 +162,17 @@
   (sqrt (+ (sqr (- (posn-x y) (posn-x x)))
            (sqr (- (posn-y y) (posn-y x))))))
 
-;;; ======== END? ========
 
-;; INPUT/OUTPUT
-; signature: end?: player -> Boolean
-; purpose:   quit the big-bang whenever the game has ended (lost or won)
-; header:    (define (end? p) #false)
 
-;; TEMPLATE
-; (define (end? p)
-;   (cond
-;     [(= (player-hp p) 0) ...]
-;     [else                ...]))
+;;; ======== END! ========
 
-;; CODE
-(define (end? boss-lp player-lp)
+(define (end! state boss-lp player-lp)
   (cond
-    [(or (= player-lp 0) (= boss-lp 0)) #false]
-    [else #true]))
+    [(= boss-lp 0) "win"]
+    [(= player-lp 0) "lost"]
+    [else state]))
+
+
 
 ;;; ======== BOSS-TICK ========
 

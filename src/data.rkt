@@ -262,7 +262,7 @@
 (define-struct appState [canvas e s boss running? movement change-turn])
 
 ;; Data examples
-(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 6  #true "still" 0))
-(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 6 #true "still" 0))
+(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 10  #true "still" 0))
+(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 10 #true "still" 0))
 (define WIN_APP_STATE  (make-appState BACKGROUND NONE  "win" 0  #false "still" 0))
 (define LOST_APP_STATE (make-appState BACKGROUND NONE "lost" 0  #false "still" 0))
