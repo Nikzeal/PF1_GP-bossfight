@@ -20,57 +20,73 @@
 ; header:    (define (draw-entities as) INITIAL_CANVAS)
 
 ;; TEMPLATE
-; (define (draw-turn as)
+; (define (draw-entities as)
 ;   ... (draw-lp (player-hp (appState-p as))) ...
-;   ... (draw-lp (appState-boss as)) ...
-;   ... (entities-sprites (appState-e as))) ...
+;   ... (draw-lp (appState-boss as))          ...
+;   ... (entities-sprites (appState-e as)))   ...
 ;   ... (entities-positions (appState-e as))) ...
-;   ... PL_SPRITE ...
-;   ... BS_SPRITE_N ...
-;   ... PL_BOX ...
-;   ... placeholder_rec ...
-;   ... (player-position (appState-p as)) ...
+;   ... PL_SPRITE                             ...
+;   ... BS_SPRITE_N                           ...
+;   ... BS_SPRITE_R                           ...
+;   ... PL_BOX                                ...
+;   ... ATK_BOX                               ...
+;   ... HEAL_BOX
+;   ... (player-position (appState-p as))     ...
 ; )
 
 ;; CODE
 (define (draw-entities as)
    (place-images
-    (list PL_SPRITE
+    (list (if (or (= (entities-player-lp (appState-e as)) 0)
+                  (= (appState-boss as) 0))
+              (rectangle 0 0 "solid" "transparent")
+          PL_SPRITE)
           (if (> (appState-boss as) 5)
               BS_SPRITE_N
               BS_SPRITE_R)
           PL_BOX
           (draw-lp (entities-player-lp (appState-e as)))
           (draw-lp (appState-boss as))
-          ATK_BOX
-          HEAL_BOX
-          ;entities
-          (place-images
-           (build-list (length (entities-enemies (appState-e as))) (lambda (n) BALL_SPRITE))
-           (entities-enemies (appState-e as))
-           (rectangle 1440 900 "solid" "transparent"))
+          ATK_BOX_UNS
+          HEAL_BOX_UNS
+          ; entities
+          (if (or (= (entities-player-lp (appState-e as)) 0)
+                  (= (appState-boss as) 0))
+              (rectangle 0 0 "solid" "transparent")
+              (place-images
+               (build-list (length (entities-enemies (appState-e as))) (lambda (n) BALL_SPRITE))
+               (entities-enemies (appState-e as))
+               (rectangle 1440 900 "solid" "transparent")))
           ; COUNTER
-          (text (number->string (appState-change-turn as)) 50 "white")
-          (text (number->string (length (entities-enemies (appState-e as)))) 50 "white")
+          ; (text (number->string (appState-change-turn as)) 50 "white")
+          ; (text (number->string (length (entities-enemies (appState-e as)))) 50 "white")
           (cond
-            [(= (entities-player-lp (appState-e as)) 0) (text "GAME OVER" 80 "white") ]
-            [(= (appState-boss as) 0) (text "YOU WIN" 80 "white")]
+            [(= (entities-player-lp (appState-e as)) 0) GAME_OVER ]
+            [(= (appState-boss as) 0) WIN]
             [else (rectangle 0 0 "solid" "transparent")])
+          (if (or (= (entities-player-lp (appState-e as)) 0)
+                  (= (appState-boss as) 0)) QUIT
+                                            (rectangle 1440 900 "solid" "transparent"))
+          (if (or (= (entities-player-lp (appState-e as)) 0)
+                  (= (appState-boss as) 0)) RETRY
+                                            (rectangle 1440 900 "solid" "transparent"))
           )
     (list (entities-player-pos (appState-e as))
-          BS_SPRITE_POSITION
+          (if (> (appState-boss as) 5)
+              BS_N_POSITION
+              BS_R_POSITION)
           PL_BOX_POSITION
           LP_POSITION_PL
           LP_POSITION_BO
           ATK_BOX_POSITION
           HEAL_BOX_POSITION
           (make-posn 720 450)
-          (make-posn 100 100)
-          (make-posn 100 800)
-          (make-posn 720 500))
+          ; (make-posn 100 100)
+          ; (make-posn 100 800)
+          (make-posn 700 500)
+          (make-posn 700 600)
+          (make-posn 700 630))
     BACKGROUND))
-
-
 
 ;;; ======== DRAW-LP ========
 
@@ -82,31 +98,33 @@
 ;; TEMPLATE
 ; (define (draw-lp n)
 ;   (cond
-;     [(= n 1) ...]
-;     [(= n 2) ...]
-;     [(= n 3) ...]
-;     [(= n 4) ...]
-;     [(= n 5) ...]
-;     [(= n 6) ...]
-;     [(= n 7) ...]
-;     [(= n 8) ...]
-;     [(= n 9) ...]
-;     [else    ...]))
+;     [(= n 1)  ...]
+;     [(= n 2)  ...]
+;     [(= n 3)  ...]
+;     [(= n 4)  ...]
+;     [(= n 5)  ...]
+;     [(= n 6)  ...]
+;     [(= n 7)  ...]
+;     [(= n 8)  ...]
+;     [(= n 9)  ...]
+;     [(= n 10) ...]
+;     [else     ...]))
 
 ;; CODE
 (define (draw-lp n)
   (cond
     ; check the number of hearts and return the image of them
-    [(= n 1) HP_SPRITE_1]
-    [(= n 2) HP_SPRITE_2]
-    [(= n 3) HP_SPRITE_3]
-    [(= n 4) HP_SPRITE_4]
-    [(= n 5) HP_SPRITE_5]
-    [(= n 6) HP_SPRITE_6]
-    [(= n 7) HP_SPRITE_7]
-    [(= n 8) HP_SPRITE_8]
-    [(= n 9) HP_SPRITE_9]
-    [else    HP_SPRITE_10]))
+    [(= n 1)  HP_SPRITE_1 ]
+    [(= n 2)  HP_SPRITE_2 ]
+    [(= n 3)  HP_SPRITE_3 ]
+    [(= n 4)  HP_SPRITE_4 ]
+    [(= n 5)  HP_SPRITE_5 ]
+    [(= n 6)  HP_SPRITE_6 ]
+    [(= n 7)  HP_SPRITE_7 ]
+    [(= n 8)  HP_SPRITE_8 ]
+    [(= n 9)  HP_SPRITE_9 ]
+    [(= n 10) HP_SPRITE_10]
+    [else    (rectangle 0 0 "solid" "transparent")]))
 
 ;;; ======== DRAW-TURN ========
 
@@ -119,13 +137,16 @@
 ; (define (draw-turn as)
 ;   ... (draw-lp (player-hp (appState-p as))) ...
 ;   ... (draw-lp (appState-boss as))          ...
-;   ... (draw-entity (appState-e as))         ...
+;   ... (entities-sprites (appState-e as)))   ...
+;   ... (entities-positions (appState-e as))) ...
 ;   ... PL_SPRITE                             ...
 ;   ... BS_SPRITE_N                           ...
+;   ... BS_SPRITE_R                           ...
 ;   ... PL_BOX                                ...
-;   ... placeholder_rec                       ...
+;   ... ATK_BOX                               ...
+;   ... HEAL_BOX
 ;   ... (player-position (appState-p as))     ...
-; ) 
+; )
 
 ;; CODE
 (define (draw-turn as)
@@ -137,11 +158,17 @@
           PL_BOX
           (draw-lp (entities-player-lp (appState-e as)))
           (draw-lp (appState-boss as))
-          ATK_BOX
-          HEAL_BOX
+          (if (= (distance (entities-player-pos (appState-e as)) (make-posn 455 800)) 0)
+              ATK_BOX_SEL
+              ATK_BOX_UNS)
+          (if (= (distance (entities-player-pos (appState-e as)) (make-posn 855 800)) 0)
+              HEAL_BOX_SEL
+              HEAL_BOX_UNS)
           (text (number->string (appState-change-turn as)) 50 "white"))
     (list (entities-player-pos (appState-e as))
-          BS_SPRITE_POSITION
+          (if (> (appState-boss as) 5)
+              BS_N_POSITION
+              BS_R_POSITION)
           PL_BOX_POSITION
           LP_POSITION_PL
           LP_POSITION_BO
@@ -150,34 +177,71 @@
           (make-posn 100 100))
     BACKGROUND))
 
+;;; ======== DRAW-MENU ========
 
+;; INPUT/OUTPUT
+; signature: draw-menu: appState -> Image
+; purpose:   draws the appState in the game menu
+; header:    (define (draw-menu as) BACKGROUND)
 
+;; TEMPLATE
+; (define (draw-menu as)
+;   ... PLAY_SEL         ...
+;   ... PLAY_UNS         ...
+;   ... CREDITS_SEL      ...
+;   ... CREDITS_UNS      ...
+;   ... PLAY_TEXT_POS    ...
+;   ... CREDITS_TEXT_POS ...
+;   ... BACKGROUND       ...)
+
+;; CODE
 (define (draw-menu as)
   (place-images
    (list
-    (text "PLAY" 60 (if (= (distance (entities-player-pos (appState-e as)) PLAY_TEXT_POS) 0)
-                           "yellow"
-                           "white"))
-    (text "CREDITS" 60 (if (= (distance (entities-player-pos (appState-e as)) CREDITS_TEXT_POS) 0)
-                           "yellow"
-                           "white"))
+    (if (= (distance (entities-player-pos (appState-e as)) PLAY_TEXT_POS) 0)
+        PLAY_SEL
+        PLAY_UNS)
+    (if (= (distance (entities-player-pos (appState-e as)) CREDITS_TEXT_POS) 0)
+        CREDITS_SEL
+        CREDITS_UNS)
+    ENTER
    )
    (list
     PLAY_TEXT_POS
     CREDITS_TEXT_POS
+    (make-posn 720 860)
    )
    BACKGROUND))
 
+;;; ======== DRAW-CREDITS ========
+
+;; INPUT/OUTPUT
+; signature: draw-credits: appState -> Image
+; purpose:   adds the credits to the game main menu
+; header:    (define (draw-credits as) BACKGROUND)
+
+;; TEMPLATE
+; (define (draw-credits as)
+;   ... PLAY_SEL         ...
+;   ... PLAY_UNS         ...
+;   ... CREDITS_SEL      ...
+;   ... CREDITS_UNS      ...
+;   ... NAMES            ...
+;   ... PLAY_TEXT_POS    ...
+;   ... CREDITS_TEXT_POS ...
+;   ... BACKGROUND       ...)
+
+;; CODE
 (define (draw-credits as)
   (place-images
    (list
-    (text "PLAY" 60 (if (= (distance (entities-player-pos (appState-e as)) PLAY_TEXT_POS) 0)
-                           "yellow"
-                           "white"))
-    (text "CREDITS" 60 (if (= (distance (entities-player-pos (appState-e as)) CREDITS_TEXT_POS) 0)
-                           "yellow"
-                           "white"))
-    (text "Nicolo' La Cara & Mattia Palladino" 50 "red")
+    (if (= (distance (entities-player-pos (appState-e as)) PLAY_TEXT_POS) 0)
+        PLAY_SEL
+        PLAY_UNS)
+   (if (= (distance (entities-player-pos (appState-e as)) CREDITS_TEXT_POS) 0)
+       CREDITS_SEL
+       CREDITS_UNS)
+   NAMES
    )
    (list
     PLAY_TEXT_POS
@@ -185,6 +249,50 @@
     (make-posn 720 700)
    )
    BACKGROUND))
+
+;;; ======== DRAW-RAGE ========
+
+;; INPUT/OUTPUT
+; signature: draw-rage: appState -> Image
+; purpose:   create a transition gif for the rage mode
+; header:    (define (draw-rage as) BACKGROUND)
+
+;; TEMPLATE
+; (define (draw-rage as)
+;   (cond
+;     [(<= 0   (appState-change-turn as) 8  ) ...]
+;     [(<= 9   (appState-change-turn as) 17 ) ...]
+;     [(<= 18  (appState-change-turn as) 26 ) ...]
+;     [(<= 27  (appState-change-turn as) 35 ) ...]
+;     [(<= 36  (appState-change-turn as) 44 ) ...]
+;     [(<= 45  (appState-change-turn as) 53 ) ...]
+;     [(<= 54  (appState-change-turn as) 62 ) ...]
+;     [(<= 63  (appState-change-turn as) 71 ) ...]
+;     [(<= 72  (appState-change-turn as) 80 ) ...]
+;     [(<= 81  (appState-change-turn as) 89 ) ...]
+;     [(<= 90  (appState-change-turn as) 98 ) ...]
+;     [(<= 99  (appState-change-turn as) 107) ...]
+;     [(<= 108 (appState-change-turn as) 117) ...]
+;     [else                                   ...]))
+
+;; CODE
+(define (draw-rage as)
+  (cond
+    [(<= 0   (appState-change-turn as) 8  ) (place-image RG1  720 450 BACKGROUND)]
+    [(<= 9   (appState-change-turn as) 17 ) (place-image RG2  720 450 BACKGROUND)]
+    [(<= 18  (appState-change-turn as) 26 ) (place-image RG3  720 450 BACKGROUND)]
+    [(<= 27  (appState-change-turn as) 35 ) (place-image RG4  720 450 BACKGROUND)]
+    [(<= 36  (appState-change-turn as) 44 ) (place-image RG5  720 450 BACKGROUND)]
+    [(<= 45  (appState-change-turn as) 53 ) (place-image RG6  720 450 BACKGROUND)]
+    [(<= 54  (appState-change-turn as) 62 ) (place-image RG7  720 450 BACKGROUND)]
+    [(<= 63  (appState-change-turn as) 71 ) (place-image RG8  720 450 BACKGROUND)]
+    [(<= 72  (appState-change-turn as) 80 ) (place-image RG9  720 450 BACKGROUND)]
+    [(<= 81  (appState-change-turn as) 89 ) (place-image RG10 720 450 BACKGROUND)]
+    [(<= 90  (appState-change-turn as) 98 ) (place-image RG11 720 450 BACKGROUND)]
+    [(<= 99  (appState-change-turn as) 107) (place-image RG12 720 450 BACKGROUND)]
+    [(<= 108 (appState-change-turn as) 117) (place-image RG13 720 450 BACKGROUND)]
+    [else (rectangle 0 0 "solid" "transparent")]))
+
 ;;; ======== DRAW-STATE ========
 
 ;; INPUT/OUTPUT
@@ -213,13 +321,22 @@
 ;               BACKGROUND))
 
 ;; TEMPLATE
-; ...
+; (define (drawAppState as)
+;   (cond
+;     [(string=? (appState-s as) "menu")               ...]
+;     [(string=? (appState-s as) "credits")            ...]
+;     [(string=? (appState-s as) "rage")               ...]
+;     [(and (empty? (entities-enemies (appState-e as)))
+;           (or (string=? (appState-s as) "boss")
+;               (string=? (appState-s as) "player")))  ...]
+;     [else (draw-entities as)]))
 
 ;; CODE 
 (define (drawAppState as)
   (cond
-    [(string=? (appState-s as) "menu") (draw-menu as)]
+    [(string=? (appState-s as) "menu")    (draw-menu as)]
     [(string=? (appState-s as) "credits") (draw-credits as)]
+    [(string=? (appState-s as) "rage")    (draw-rage as)]
     ;[(string=? "lost") (draw-lost as)]
     ;[(string=? "win")  (draw-win as)]
     ; boss and player's turn
@@ -227,5 +344,4 @@
           (or (string=? (appState-s as) "boss")
               (string=? (appState-s as) "player")))  (draw-turn as)]
     [else (draw-entities as)]
-    ;[(or (= (as-s) "player-attack") (= (as-s) "player-heal")) (draw-action as)]
     ))

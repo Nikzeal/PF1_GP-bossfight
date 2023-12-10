@@ -20,30 +20,42 @@
 ; header:    (define (tick state) INITIAL_APP_STATE)
 
 ;; EXAMPLES
-; (check-expect (tick INITIAL_APP_STATE) INITIAL_APP_STATE)
-; (check-expect (tick AP2)               (make-appState
-;                                        BACKGROUND
-;                                        (make-player
-;                                        PL_SPRITE 3
-;                                        (make-posn 600 (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
-;                                        BALLS "boss" 10 #true "still"))
-; (check-expect (tick AP3)               (make-appState
-;                                         BACKGROUND
-;                                          (make-player
-;                                           PL_SPRITE 3
-;                                           (make-posn (+ PL_BOX_LEFT (/ PL_WIDTH 2)) 850))
-;                                         BALLS "boss" 10 #true "still"))
-; (check-expect (tick AP4)               AP4)
+; ...
 
 ;; TEMPLATE
 ; (define (tick state)
 ;   (cond
-;     [(string=? (appState-s state) "boss"  ) ... state ...]
-;     [(string=? (appState-s state) "player") ... state ...]))
+;     [(and (< (appState-change-turn state) 117) (string=? (appState-s state) "rage")) ... state ...]
+;     [(and (= (appState-change-turn state) 117) (string=? (appState-s state) "rage")) ... state ...]
+;     [(or (string=? (appState-s state) "win")   (string=? (appState-s state) "lost")) ... state ...]
+;     [(string=? (appState-s state) "menu")                                            ... state ...]
+;     [(and (< (appState-change-turn state) 1)   (string=? (appState-s state) "boss")) ... state ...]
+;     [(and (< (appState-change-turn state) 30)  (string=? (appState-s state) "boss")) ... state ...]
+;     [(and (< (appState-change-turn state) 499) (string=? (appState-s state) "boss")) ... state ...]
+;     [(= (appState-change-turn state) 499)                                            ... state ...]
+;     [else                                                                            ... state ...]))
 
 ;; CODE
 (define (tick state)
   (cond
+    ; handles the rage transition
+    [(and (< (appState-change-turn state) 117) (string=? (appState-s state) "rage"))
+     (make-appState (appState-canvas state)
+                    (appState-e state)
+                    (appState-s state)
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    (add1 (appState-change-turn state)))]
+     [(and (= (appState-change-turn state) 117) (string=? (appState-s state) "rage"))
+     (make-appState (appState-canvas state)
+                    (appState-e state)
+                    "boss"
+                    (appState-boss state)
+                    (appState-running? state)
+                    (appState-movement state)
+                    0)]
+     ; check if the player has lost or win the game
     [(or (string=? (appState-s state) "win") (string=? (appState-s state) "lost"))
      (make-appState (appState-canvas state)
                     (appState-e state)
@@ -52,6 +64,7 @@
                     (appState-running? state)
                     (appState-movement state)
                     (appState-change-turn state))]
+    ; check if the player is in the menu
     [(string=? (appState-s state) "menu")
      (make-appState (appState-canvas state)
                     (appState-e state)
@@ -97,11 +110,12 @@
                      (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
+    ; change the turn to the player turn
     [(= (appState-change-turn state) 499)
      (make-appState (appState-canvas state)
                     (make-entities
                      (entities-player-lp (appState-e state))
-                     ATK_BOX_POSITION
+                     (make-posn 455 800)
                      '())
                     "player"
                     (appState-boss state)
@@ -121,27 +135,20 @@
 ;;; ======== COLLISION ========
 
 ;; INPUT/OUTPUT
-; signature: collsion: player entities -> Number
+; signature: collsion: Posn Number List<Posn> -> Number
 ; purpose:   remove a hp if the player collided with an entity
-; header:    (define (collision p e) 0)
+; header:    (define (collision player-pos player-lp enemies) 0)
 
 ;; TEMPLATE
-; (define (collision p e)
+; (define (collision player-pos player-lp enemies)
 ;   (cond
-;     [(or (>= 79 (distance (first   (entities-positions e)) (player-position p)))
-;          (>= 79 (distance (second  (entities-positions e)) (player-position p)))
-;          (>= 79 (distance (third   (entities-positions e)) (player-position p)))
-;          (>= 79 (distance (fourth  (entities-positions e)) (player-position p)))
-;          (>= 79 (distance (fifth   (entities-positions e)) (player-position p)))
-;          (>= 79 (distance (sixth   (entities-positions e)) (player-position p)))
-;          (>= 79 (distance (seventh (entities-positions e)) (player-position p))))
-;           ...]
-;     [else ...]))
+;     [(ormap (lambda (n) (>= 36 (distance n player-pos))) enemies) ...]
+;     [else                                                         ...]))
 
 ;; CODE
 (define (collision player-pos player-lp enemies)
   (cond
-    [(ormap (lambda (n) (>= 37 (distance n player-pos))) enemies)
+    [(ormap (lambda (n) (>= 36 (distance n player-pos))) enemies)
      (sub1  player-lp)]
     [else   player-lp]))
 
@@ -163,16 +170,26 @@
            (sqr (- (posn-y y) (posn-y x))))))
 
 
-
 ;;; ======== END! ========
 
+;; INPUT/OUTPUT
+; signature: end!: String Number Number -> String
+; purpose:   check if the player has lost or won
+; header:    (define (end! state boss-lp player-lp) "")
+
+;; TEMPLATE
+; (define (end! state boss-lp player-lp)
+;   (cond
+;     [(= boss-lp   0) ...]
+;     [(= player-lp 0) ...]
+;     [else            ...]))
+
+;; CODE
 (define (end! state boss-lp player-lp)
   (cond
-    [(= boss-lp 0) "win"]
+    [(= boss-lp 0)   "win"]
     [(= player-lp 0) "lost"]
     [else state]))
-
-
 
 ;;; ======== BOSS-TICK ========
 
@@ -314,19 +331,16 @@
 ;; TEMPLATE
 ;(define (entity-move state)
 ;  (cond
-;    [(and (empty? (entities-sprites   (appState-e state)))
-;          (empty? (entities-positions (appState-e state))))
-;          ... (random 400)                            ...
-;          ... (random 300)                            ...]
-;    [else ... BASE_SPEED                              ...
-;          ... FRAME                                   ...
-;          ... (entities-positions (appState-e state)) ...]))
+;    [(empty? (entities-enemies (appState-e state)))   ... ]
+;    [(ormap (lambda (n) (>= 37 (distance n (entities-player-pos (appState-e state)))))
+;            (entities-enemies (appState-e state)))    ... ]
+;    [else                                             ... ]))
 
 ;; CODE
 (define (entity-move state)
   (cond
     [(empty? (entities-enemies (appState-e state)))
-      (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]
+      (build-list 7 (lambda (n) (make-posn (- (random 200) 220) (+ (random 300) 450))))]
     [(ormap (lambda (n) (>= 37 (distance n (entities-player-pos (appState-e state))))) (entities-enemies (appState-e state)))
      (filter (lambda (n) (< 37 (distance n (entities-player-pos (appState-e state))))) (entities-enemies (appState-e state)))]
     [else
@@ -341,7 +355,9 @@
 ;; TEMPLATE
 ;(define (entity-reset en)
 ; (cond
-;    [(ormap (lambda (n) (<= 0 (posn-x n) 400)) (entities-positions en))
+;    [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) (<= boss 5))
+;           ... (entities-positions en) ...]
+;    [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) ( > boss 5))
 ;           ... (entities-positions en) ...]
 ;    [else  ... (entities-positions en) ...]))
 

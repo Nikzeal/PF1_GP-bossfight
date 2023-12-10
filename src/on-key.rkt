@@ -24,28 +24,33 @@
 ; header:    (define (handle-key state key) INITIAL_APP_STATE)
 
 ;; EXAMPLES
-;(check-expect (handle-key INITIAL_APP_STATE "right")
- ;             (make-appState BACKGROUND INITIAL_PLAYER NONE "boss" 10 #true "right"))
-;(check-expect (handle-key AP2 "left")
- ;             (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "left"))
-;(check-expect (handle-key AP3 "up")
-;              (make-appState BACKGROUND PL2 BALLS "boss" 10 #true "up"))
-;(check-expect (handle-key AP4 "right")
- ;             (make-appState BACKGROUND (make-player PL_SPRITE 5 HEAL_BOX_POSITION)
-  ;                           NONE "player" 10 #false "still"))
+; (check-expect (handle-key INITIAL_APP_STATE "right")
+;               (make-appState BACKGROUND INITIAL_PLAYER NONE "boss" 10 #true "right"))
+; (check-expect (handle-key AP2 "left")
+;               (make-appState BACKGROUND PL1 BALLS "boss" 10 #true "left"))
+; (check-expect (handle-key AP3 "up")
+;               (make-appState BACKGROUND PL2 BALLS "boss" 10 #true "up"))
+; (check-expect (handle-key AP4 "right")
+;               (make-appState BACKGROUND (make-player PL_SPRITE 5 HEAL_BOX_POSITION)
+;                              NONE "player" 10 #false "still"))
 
 ;; TEMPLATE
 ; (define (handle-key state key)
 ;   (cond
-;     [(string=? (appState-s state) "boss"  ) ... state ... key ...]
-;     [(string=? (appState-s state) "player") ... state ... key ...]
-;     [else                                   ... state ... key ...]))
+;     [(string=? (appState-s state) "end")          ... state ... key ...]
+;     [(or (string=? (appState-s state) "menu")
+;          (string=? (appState-s state) "credits")) ... state ... key ...]
+;     [(string=? (appState-s state) "boss")         ... state ... key ...]
+;     [(string=? (appState-s state) "player")       ... state ... key ...]
+;     [else                                         ... state ... key ...]))
 
 ;; CODE
 (define (handle-key state key)
   (cond
+    ; check if the game has ended -> see end? function
     [(string=? (appState-s state) "end")
      (end? key state)]
+    ; check if the player is in the main menu
     [(or (string=? (appState-s state) "menu") (string=? (appState-s state) "credits"))
      (make-appState (appState-canvas state)
                     (make-entities
@@ -66,6 +71,7 @@
                     (appState-running? state)
                     (boss-key key)
                     (appState-change-turn state))]
+    ; check if it is the player turn -> see player-act function
      [(string=? (appState-s state) "player") (player-act state key)]
     [else state]))
 
@@ -74,14 +80,15 @@
 
 ;; INPUT/OUTPUT
 ; signature: end?: key appState  -> appState
-; purpose:   quit the big-bang whenever the game has ended (lost or won)
-; header:    (define (end? p) #false)
+; purpose:   let the player decide if to retry or to quit when the game has ended
+; header:    (define (end? key state) #false)
 
 ;; TEMPLATE
-; (define (end? p)
+; (define (end? key state)
 ;   (cond
-;     [(= (player-hp p) 0) ...]
-;     [else                ...]))
+;     [(string=? key "q") ... state ...]
+;     [(string=? key "r") ... state ...]
+;     [else               ... state ...]))
 
 ;; CODE
 (define (end? key state)
@@ -108,37 +115,37 @@
 ;;; ======== MENU-SELECT ========
 
 ;; INPUT/OUTPUT
-; signature: menu-key: Key -> Number
-; purpose:   handles the key events for the menu screen
+; signature: menu-key: Key -> String
+; purpose:   handles the key events (select) for the menu screen
 ; header:    (define (menu-key state key) 0)
 
 ;; TEMPLATE
 ; (define (menu-key key)
 ;   (cond
-;     [(key=? key "up")  ...]
-;     [(key=? key "down") ...]
-;     [else                ...]))
+;     [(key=? key "\r") ...]
+;     [(key=? key "\r") ...]
+;     [else             ...]))
 
 ;; CODE
 (define (menu-select key player-pos)
   (cond
-    [(and (key=? key "\r") (= 0 (distance player-pos PLAY_TEXT_POS)))   "boss"]
+    [(and (key=? key "\r") (= 0 (distance player-pos PLAY_TEXT_POS)))    "boss"]
     [(and (key=? key "\r") (= 0 (distance player-pos CREDITS_TEXT_POS))) "credits"]
-    [else               "menu"]))
+    [else                                                                "menu"]))
 
 ;;; ======== MENU-KEY ========
 
 ;; INPUT/OUTPUT
-; signature: menu-key: Key -> Number
-; purpose:   handles the key events for the menu screen
-; header:    (define (menu-key state key) 0)
+; signature: menu-key: Key -> Posn
+; purpose:   handles the key events (move) for the menu screen
+; header:    (define (menu-key key) (make-posn 0 0))
 
 ;; TEMPLATE
 ; (define (menu-key key)
 ;   (cond
-;     [(key=? key "up")  ...]
+;     [(key=? key "up")   ...]
 ;     [(key=? key "down") ...]
-;     [else                ...]))
+;     [else               ...]))
 
 ;; CODE
 (define (menu-key key player-pos)
@@ -151,20 +158,27 @@
 ;;; ======== PLAYER-ACT ========
 
 ;; INPUT/OUTPUT
-; signature: player-act: appState KeyEvent -> Number
+; signature: player-act: appState KeyEvent -> appState
 ; purpose:   attacks the boss or heals the player when player presses z
 ; header:    (define (player-act state key) INITIAL_APP_STATE)
 
 ;; TEMPLATE
 ;(define (player-act state key)
 ;  (cond
-;   [(and (= key "z") (< (player-hp player) 5)) ... (player-hp player) ...]
-;    [else ... (player-hp) ...]))
+;   [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 855 800)) 0)
+;         (string=? key "z")
+;         (< (entities-player-lp (appState-e state)) 5))  ... state ...]
+;   [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 455 800)) 0)
+;         (string=? key "z")
+;         (= 6 (appState-boss state)))                    ... state ...]
+;   [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 455 800)) 0)
+;         (string=? key "z"))                             ... state ...]
+;   [else                                                 ... state ...]))
 
 ;; CODE
 (define (player-act state key)
   (cond
-    [(and (= (distance (entities-player-pos (appState-e state)) HEAL_BOX_POSITION) 0)
+    [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 855 800)) 0)
           (string=? key "z")
           (< (entities-player-lp (appState-e state)) 5))
      (make-appState (appState-canvas state)
@@ -177,7 +191,20 @@
                     (appState-running? state)
                     (appState-movement state)
                     0)]
-    [(and (= (distance (entities-player-pos (appState-e state)) ATK_BOX_POSITION) 0)
+     [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 455 800)) 0)
+          (string=? key "z")
+          (= 6 (appState-boss state)))
+          (make-appState (appState-canvas state)
+                    (make-entities
+                     (entities-player-lp (appState-e state))
+                     (player-key key (entities-player-pos (appState-e state)))
+                     (entities-enemies (appState-e state)))
+                    "rage"
+                    (sub1 (appState-boss state))
+                    (appState-running? state)
+                    (appState-movement state)
+                    0)]
+    [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 455 800)) 0)
           (string=? key "z"))
      (make-appState (appState-canvas state)
                     (make-entities
@@ -249,9 +276,9 @@
 (define (player-key key player-pos)
   (cond
     ; check if the pressed key is "left" and place the player on the attack box
-    [(key=? key "left")  ATK_BOX_POSITION        ]
+    [(key=? key "left")  (make-posn 455 800)]
     ; check if the pressed key is "right" and place the player on the heal box
-    [(key=? key "right") HEAL_BOX_POSITION       ]
+    [(key=? key "right") (make-posn 855 800)]
     ; if any other key is pressed, it returns the current player position
     [else                player-pos]))
 
@@ -275,8 +302,9 @@
 ;; TEMPLATE
 ; (define (handle-release state key)
 ;    (cond
-;     [(string=? (appState-s state) "boss") ... state ...]
-;     [else                                 ... state ...]))
+;     [(or (key=? key "left") (key=? key "right") (key=? key "up") (key=? key "down"))
+;           ... state ...]
+;     [else ... state ...]))
 
 ;; CODE
 (define (handle-release state key)

@@ -14,13 +14,20 @@
 (define BACKGROUND (rectangle 1440 900 "solid" "black"))
 
 ; Buttons
-(define ATK_BOX (bitmap/file "../resources/atk.jpeg"))
-(define HEAL_BOX (bitmap/file "../resources/heal.jpeg"))
+(define ATK_BOX_UNS (bitmap/file "../resources/atk.jpeg"))
+(define ATK_BOX_SEL (bitmap/file "../resources/ATK.png"))
+(define HEAL_BOX_UNS (bitmap/file "../resources/heal.jpeg"))
+(define HEAL_BOX_SEL (bitmap/file "../resources/HEAL.png"))
 (define ATK_BOX_POSITION (make-posn 500 800))
 (define HEAL_BOX_POSITION (make-posn 900 800))
+(define PLAY_UNS (scale 0.3 (bitmap/file "../resources/play-white.png")))
+(define PLAY_SEL (scale 0.3 (bitmap/file "../resources/play-yellow.png")))
 (define PLAY_TEXT_POS (make-posn 720 400))
+(define CREDITS_UNS (scale 0.3 (bitmap/file "../resources/credits-white.png")))
+(define CREDITS_SEL (scale 0.3 (bitmap/file "../resources/credits-yellow.png")))
 (define CREDITS_TEXT_POS (make-posn 720 500))
-
+(define NAMES (scale 0.3 (bitmap/file "../resources/names.png")))
+(define ENTER (scale 0.5 (bitmap/file "../resources/enter.png")))
 
 ; Player box
 (define PL_BOX (rectangle 400 300 "outline" (pen "white" 10 "solid" "round" "bevel")))
@@ -29,12 +36,30 @@
 (define PL_BOX_BOTTOM 750)
 (define PL_BOX_TOP 450)
 (define PL_BOX_POSITION (make-posn 700 600))
+(define GAME_OVER (scale 0.35 (bitmap/file "../resources/GAME-OVER.png")))
+(define WIN (scale 0.35 (bitmap/file "../resources/WIN.png")))
+(define QUIT (scale 0.35 (bitmap/file "../resources/quit.png")))
+(define RETRY (scale 0.35 (bitmap/file "../resources/retry.png")))
 
 ; Boss
 (define BS_SPRITE_N  (scale 1.2 (bitmap/file "../resources/normal.png")))
 (define BS_SPRITE_R  (bitmap/file "../resources/rage.png"))
-(define BS_SPRITE_POSITION (make-posn 500 200))
+(define BS_N_POSITION (make-posn 630 240))
+(define BS_R_POSITION (make-posn 680 240))
 (define LP_POSITION_BO  (make-posn 700 70))
+(define RG1 (scale 1.7 (bitmap/file "../resources/gif/1.png")))
+(define RG2 (scale 1.7 (bitmap/file "../resources/gif/2.png")))
+(define RG3 (scale 1.7 (bitmap/file "../resources/gif/3.png")))
+(define RG4 (scale 1.7 (bitmap/file "../resources/gif/4.png")))
+(define RG5 (scale 1.7 (bitmap/file "../resources/gif/5.png")))
+(define RG6 (scale 1.7 (bitmap/file "../resources/gif/6.png")))
+(define RG7 (scale 1.7 (bitmap/file "../resources/gif/7.png")))
+(define RG8 (scale 1.7 (bitmap/file "../resources/gif/8.png")))
+(define RG9 (scale 1.7 (bitmap/file "../resources/gif/9.png")))
+(define RG10 (scale 1.7 (bitmap/file "../resources/gif/10.png")))
+(define RG11 (scale 1.7 (bitmap/file "../resources/gif/11.png")))
+(define RG12 (scale 1.7 (bitmap/file "../resources/gif/12.png")))
+(define RG13 (scale 1.7 (bitmap/file "../resources/gif/13.png")))
 
 ; Player
 (define PL_SPRITE (center-pinhole (scale 0.3  (bitmap/file "../resources/player.png"))))
@@ -53,8 +78,6 @@
 
 ; HP sprites
 (define PL_HP (scale 0.65 (bitmap/file "../resources/heart.png")))
-; (define PL_LP (scale 0.02 (bitmap/file "../resources/heart-pl.png")))
-; (define BOSS_LP (scale 0.02(bitmap/file "../resources/heart-boss.png")))
 (define HP_SPRITE_10 (above (beside
           PL_HP
           PL_HP
@@ -138,45 +161,10 @@
 
 (define HP_SPRITE_1 PL_HP)
 
-; Knife (entity)
-(define KNIFE_SPRITE (bitmap/file "../resources/knife.png"))
-
 ; Ball (entity)
 (define BALL_SPRITE  (scale 0.2 (bitmap/file "../resources/ball.png")))
 (define BALL_HEIGHT (image-height BALL_SPRITE))
 (define BALL_WIDTH (image-width BALL_SPRITE))
-
-; Arrow (entity)
-(define ARROW_SPRITE (bitmap/file "../resources/arrow.png"))
-
-; Sword (entity)
-(define SWORD_SPRITE (bitmap/file "../resources/sword.png"))
-
-
-
-; Gameover canvas
-(define GAMEOVER_CANVAS (place-images
-   (list
-    (text "GAME OVER" 80 "white")
-    (text "Press r to retry" 30 "yellow")
-   )
-   (list
-    (make-posn 720 400)
-    (make-posn 720 600)
-   )
-   BACKGROUND))
-
-; Victory canvas
-(define VICTORY_CANVAS (place-images
-   (list
-    (text "YOU WIN" 80 "white")
-    (text "Press r to restart the game" 30 "yellow")
-   )
-   (list
-    (make-posn 720 400)
-    (make-posn 720 600)
-   )
-   BACKGROUND))
 
 ; Initial canvas
 (define INITIAL_CANVAS (place-images
@@ -185,10 +173,10 @@
          PL_BOX
          HP_SPRITE_5
          HP_SPRITE_10
-         ATK_BOX
-         HEAL_BOX)
+         ATK_BOX_UNS
+         HEAL_BOX_UNS)
    (list INITIAL_PLAYER_POS
-         BS_SPRITE_POSITION
+         BS_N_POSITION
          PL_BOX_POSITION
          LP_POSITION_PL
          LP_POSITION_BO
@@ -212,6 +200,7 @@
 ;      - (cons Posn List<Posn>)
 ; interpretation: the player's life points, position and the entities positions 
 (define-struct entities [player-lp player-pos enemies])
+
 ;; Data examples
 (define PLAYER  (make-entities 5 (make-posn 500 400) '() ))
 (define MENU  (make-entities 5 (make-posn 720 400) '() ))
