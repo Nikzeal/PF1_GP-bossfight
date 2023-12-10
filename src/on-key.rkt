@@ -127,22 +127,25 @@
 ;; CODE
 (define (player-act state key)
   (cond
-    [(and (= (distance (entities-player-pos (appState-e state)) HEAL_BOX_POSITION) 0) (string=? key "z") (< (entities-player-lp (appState-e state)) 5))
+    [(and (= (distance (entities-player-pos (appState-e state)) HEAL_BOX_POSITION) 0)
+          (string=? key "z")
+          (< (entities-player-lp (appState-e state)) 5))
      (make-appState (appState-canvas state)
                     (make-entities
                      (add1 (entities-player-lp (appState-e state)))
-                     (entities-player-pos (appState-e state))
+                     PL_BOX_POSITION
                      (entity-move state))
                     "boss"
                     (appState-boss state)
                     (appState-running? state)
                     (appState-movement state)
                     0)]
-    [(and (= (distance (entities-player-pos (appState-e state)) ATK_BOX_POSITION) 0) (string=? key "z"))
+    [(and (= (distance (entities-player-pos (appState-e state)) ATK_BOX_POSITION) 0)
+          (string=? key "z"))
      (make-appState (appState-canvas state)
                     (make-entities
                      (entities-player-lp (appState-e state))
-                     (entities-player-pos (appState-e state))
+                     PL_BOX_POSITION
                      (entity-move state))
                     "boss"
                     (sub1 (appState-boss state))
