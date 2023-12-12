@@ -138,10 +138,10 @@
 
 ; a substate is one of:
 ;  - "menu"
+;  - "credits"
 ;  - "player"
 ;  - "boss"
-;  - "lost"
-;  - "win"
+;  - "end"
 ; interpretation: indicates if it is the `boss` turn or the `player` turn
 
 ; a movement is one of:
@@ -174,5 +174,4 @@
 ;; Data examples
 (define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 1  #true "still" 0))
 (define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 1 #true "still" 0))
-(define WIN_APP_STATE  (make-appState BACKGROUND NONE  "win" 0  #false "still" 0))
-(define LOST_APP_STATE (make-appState BACKGROUND NONE "lost" 0  #false "still" 0))
+(define END_APP_STATE  (make-appState BACKGROUND NONE  "end" 0  #false "still" 0))
