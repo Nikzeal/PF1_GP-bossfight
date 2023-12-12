@@ -22,8 +22,9 @@
 ; header:    (define (quit? appState) #true)
 
 ;; EXAMPLES
-(check-expect (quit? INITIAL_APP_STATE) #false)
-(check-expect (quit? AP4) #true)
+(check-expect (quit? MENU_APP_STATE) #false)
+(check-expect (quit? GAME_APP_STATE) #false)
+(check-expect (quit? END_APP_STATE ) #true )
 
 ;; TEMPLATE
 ;(define (quit? as)

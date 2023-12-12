@@ -1,7 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname on-tick) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
-
 ;; LIBRARIES
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -16,30 +15,29 @@
 ;; INPUT/OUTPUT
 ; signature: tick: appState -> appState
 ; purpose:   handles the movement of the player every tick so that in the boss' turn it
-;            can change position in the box, while in the player's turn it can change
-;            position between the two attack and heal boxes
-; header:    (define (tick state) INITIAL_APP_STATE)
+;            can change the player position in the box and the entities position, while
+;            in the player's turn it can change position between the two attack and heal boxes
+;            It handles the rage transition time too.
+; header:    (define (tick state) GAME_APP_STATE)
 
 ;; EXAMPLES
-; ...
+(check-expect (tick MENU_APP_STATE) MENU_APP_STATE)
+(check-expect (tick END_APP_STATE ) END_APP_STATE)
 
 ;; TEMPLATE
 ; (define (tick state)
 ;   (cond
 ;     [(and (< (appState-change-turn state) 117) (string=? (appState-s state) "rage")) ... state ...]
 ;     [(and (= (appState-change-turn state) 117) (string=? (appState-s state) "rage")) ... state ...]
-;     [(or (string=? (appState-s state) "win")   (string=? (appState-s state) "lost")) ... state ...]
-;     [(string=? (appState-s state) "menu")                                            ... state ...]
-;     [(and (< (appState-change-turn state) 1)   (string=? (appState-s state) "boss")) ... state ...]
-;     [(and (< (appState-change-turn state) 30)  (string=? (appState-s state) "boss")) ... state ...]
-;     [(and (< (appState-change-turn state) 499) (string=? (appState-s state) "boss")) ... state ...]
-;     [(= (appState-change-turn state) 499)                                            ... state ...]
+;     [(and (< (appState-change-turn state) 30 ) (string=? (appState-s state) "boss")) ... state ...]
+;     [(and (< (appState-change-turn state) 500) (string=? (appState-s state) "boss")) ... state ...]
+;     [(= (appState-change-turn state) 500)                                            ... state ...]
 ;     [else                                                                            ... state ...]))
 
 ;; CODE
 (define (tick state)
   (cond
-    ; keep pushing the timer 
+    ; handles the tick counter during the rage transition 
     [(and (< (appState-change-turn state) 117) (string=? (appState-s state) "rage"))
      (make-appState (appState-canvas state)
                     (appState-e state)
@@ -58,7 +56,7 @@
                     (appState-movement state)
                     0)]
     ; boss turn, make 30 ticks pass and position player at the center of the box
-    ; after 30 ticks the game starts
+    ; after 30 ticks the turn starts
     [(and (< (appState-change-turn state) 30) (string=? (appState-s state) "boss"))
       (make-appState (appState-canvas state)
                      (make-entities
@@ -70,7 +68,7 @@
                      (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
-    [(and (< (appState-change-turn state) 499) (string=? (appState-s state) "boss"))
+    [(and (< (appState-change-turn state) 500) (string=? (appState-s state) "boss"))
       (make-appState (appState-canvas state)
                      (make-entities
                       (collision
@@ -84,8 +82,8 @@
                      (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
-    ; use 1 tick to change the turn to the player turn and add 1 to the time to make it 500
-    [(= (appState-change-turn state) 499)
+    ; at 500 ticks, the tick counter resets to 0 and it begins the player turn
+    [(= (appState-change-turn state) 500)
      (make-appState (appState-canvas state)
                     (make-entities
                      (entities-player-lp (appState-e state))
@@ -95,7 +93,7 @@
                     (appState-boss state)
                     (appState-running? state)
                     "still"
-                    (add1 (appState-change-turn state)))]
+                    0)]
     ; all the other states: menu, player 
     [else state]))
 
@@ -105,6 +103,11 @@
 ; signature: collsion: Posn Number List<Posn> -> Number
 ; purpose:   remove a hp if the player collided with an entity
 ; header:    (define (collision player-pos player-lp enemies) 0)
+
+;; EXAMPLES
+(check-expect (collision (make-posn 500 500) 5 (list (make-posn 499 501) (make-posn 400 100))) 4)
+(check-expect (collision (make-posn 500 500) 3 (list (make-posn 200 501) (make-posn 400 100))) 3)
+(check-expect (collision (make-posn 500 500) 1 (list (make-posn 499 501) (make-posn 500 500))) 0)
 
 ;; TEMPLATE
 ; (define (collision player-pos player-lp enemies)
@@ -136,7 +139,6 @@
   (sqrt (+ (sqr (- (posn-x y) (posn-x x)))
            (sqr (- (posn-y y) (posn-y x))))))
 
-
 ;;; ======== END! ========
 
 ;; INPUT/OUTPUT
@@ -144,17 +146,21 @@
 ; purpose:   check if the player has lost or won
 ; header:    (define (end! state boss-lp player-lp) "")
 
+;; EXAMPLES
+(check-expect (end! "boss"   7 4 ) "boss"  )
+(check-expect (end! "player" 10 2) "player")
+(check-expect (end! "player" 0 2 ) "end"   )
+
 ;; TEMPLATE
 ; (define (end! state boss-lp player-lp)
 ;   (cond
-;     [(= boss-lp   0) ...]
-;     [(= player-lp 0) ...]
-;     [else            ...]))
+;     [(or (= boss-lp 0) (= player-lp 0)) ...]
+;     [else                               ...]))
 
 ;; CODE
 (define (end! state boss-lp player-lp)
   (cond
-    [(or (= boss-lp 0) (= player-lp 0))  "end"]
+    [(or (= boss-lp 0) (= player-lp 0)) "end"]
     [else state]))
 
 ;;; ======== BOSS-TICK ========
@@ -167,13 +173,18 @@
 ;            cannot surpass the box borders)
 ; header:    (define (boss-tick state) (make-posn 0 0))
 
+;; EXAMPLES
+(check-expect (boss-tick MENU_APP_STATE) (make-posn 700 600))
+(check-expect (boss-tick GAME_APP_STATE) INITIAL_PLAYER_POS)
+(check-expect (boss-tick END_APP_STATE ) (make-posn 700 600))
+
 ;; TEMPLATE
 ; (define (boss-tick state)
 ;   (cond
-;     [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2))
+;     [(and (< (+ PL_BOX_LEFT   (/ PL_WIDTH  2))
 ;              (posn-x (player-position (appState-p state)))
-;              (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
-;           (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
+;              (- PL_BOX_RIGHT  (/ PL_WIDTH  2)))
+;           (< (+ PL_BOX_TOP    (/ PL_HEIGHT 2))
 ;              (posn-y (player-position (appState-p state)))
 ;              (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
 ;           ...]
@@ -182,12 +193,13 @@
 ;; CODE
 (define (boss-tick state)
   (cond
-    [(< (appState-change-turn state) 1) PL_BOX_POSITION]
+    ; it displays the player in the center of the box at the start of the turn
+    [(< (appState-change-turn state) 1) INITIAL_PLAYER_POS]
     ; check if the player is inside the box  -> see boss-tick-box
-    [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2))
+    [(and (< (+ PL_BOX_LEFT   (/ PL_WIDTH  2))
              (posn-x (entities-player-pos (appState-e state)))
-             (- PL_BOX_RIGHT (/ PL_WIDTH 2)))
-          (< (+ PL_BOX_TOP (/ PL_HEIGHT 2))
+             (- PL_BOX_RIGHT  (/ PL_WIDTH  2)))
+          (< (+ PL_BOX_TOP    (/ PL_HEIGHT 2))
              (posn-y (entities-player-pos (appState-e state)))
              (- PL_BOX_BOTTOM (/ PL_HEIGHT 2))))
      (boss-tick-box state)]
@@ -202,6 +214,11 @@
 ; purpose:   handles the movement of the player by looking at the movement in the structure
 ; header:    (define (boss-tick-box state) (make-posn 0 0))
 
+;; EXAMPLES
+(check-expect (boss-tick MENU_APP_STATE) (make-posn 700 600))
+(check-expect (boss-tick GAME_APP_STATE) INITIAL_PLAYER_POS)
+(check-expect (boss-tick END_APP_STATE ) (make-posn 700 600))
+
 ;; TEMPLATE
 ; (define (boss-tick-box state)
 ;   (cond
@@ -211,15 +228,14 @@
 ;          (string=? (appState-movement state) "down" )) ... state ...]
 ;     [else                                              ... state ...]))
 
-
 ;; CODE
 (define (boss-tick-box state)
   (cond
-    ; check if movement is "left" or "up" and decrements the x or y position-> see player-move
+    ; check if movement is "left" or "up" and decrements the x or y position    -> see player-move
     [(or (string=? (appState-movement state) "left"  )
          (string=? (appState-movement state) "up"    ))
      (player-move  (entities-player-pos (appState-e state)) (appState-movement state) -)]
-    ; check if movement is "right" or "down" and increments the x or y position-> see player-move
+    ; check if movement is "right" or "down" and increments the x or y position -> see player-move
     [(or (string=? (appState-movement state) "right" )
          (string=? (appState-movement state) "down"  ))
      (player-move  (entities-player-pos (appState-e state)) (appState-movement state) +)]
@@ -228,11 +244,16 @@
 ;;; ======== PLAYER-MOVE  ========
 
 ;; INPUT/OUTPUT
-; signature: player-move: player movement [Number Number -> Number] -> Posn
+; signature: player-move: Posn String [Number Number -> Number] -> Posn
 ; purpose:   changes the position of the player by 100/FRAME pixels
 ;            based on the movement `m` by increasing or decreasing its position based
 ;            on the function `fun`
 ; header:    (define (player-move p m fun) (make-posn 0 0))
+
+;; EXAMPLES
+(check-expect (player-move (make-posn 500 500) "right" +) (make-posn 506 500))
+(check-expect (player-move (make-posn 500 500) "left"  -) (make-posn 494 500))
+(check-expect (player-move (make-posn 500 500) "up"    +) (make-posn 500 506))
 
 ;; TEMPLATE
 ;(define (player-move p m fun)
@@ -257,6 +278,10 @@
 ; purpose:   moves the player by some pixels in the opposite direction of the border it goes into
 ;            when the player reaches one of the borders of the PL_BOX
 ; header:    (define (boss-tick-border state) (make-posn 0 0))
+
+;; EXAMPLES
+(check-expect (boss-tick-border MENU_APP_STATE) (make-posn 720 473.5))
+(check-expect (boss-tick-border GAME_APP_STATE) INITIAL_PLAYER_POS)
 
 ;; TEMPLATE
 ; (define (boss-tick-border state)
@@ -330,7 +355,6 @@
 ;    [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) ( > boss 5))
 ;           ... (entities-positions en) ...]
 ;    [else  ... (entities-positions en) ...]))
-
 
 ;; CODE
 (define (entity-reset en boss)
