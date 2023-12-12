@@ -1,6 +1,7 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname on-key) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+
 ;; LIBRARIES
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -178,7 +179,7 @@
 ;; CODE
 (define (player-act state key)
   (cond
-    [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 855 800)) 0)
+    [(and (= (distance (entities-player-pos (appState-e state)) PL_OFFSET_HEAL) 0)
           (string=? key "z")
           (< (entities-player-lp (appState-e state)) 5))
      (make-appState (appState-canvas state)
@@ -191,7 +192,7 @@
                     (appState-running? state)
                     (appState-movement state)
                     0)]
-     [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 455 800)) 0)
+     [(and (= (distance (entities-player-pos (appState-e state)) PL_OFFSET_ATTACK) 0)
           (string=? key "z")
           (= 6 (appState-boss state)))
           (make-appState (appState-canvas state)
@@ -204,7 +205,7 @@
                     (appState-running? state)
                     (appState-movement state)
                     0)]
-    [(and (= (distance (entities-player-pos (appState-e state)) (make-posn 455 800)) 0)
+    [(and (= (distance (entities-player-pos (appState-e state)) PL_OFFSET_ATTACK) 0)
           (string=? key "z"))
      (make-appState (appState-canvas state)
                     (make-entities
@@ -276,9 +277,9 @@
 (define (player-key key player-pos)
   (cond
     ; check if the pressed key is "left" and place the player on the attack box
-    [(key=? key "left")  (make-posn 455 800)]
+    [(key=? key "left")  PL_OFFSET_ATTACK]
     ; check if the pressed key is "right" and place the player on the heal box
-    [(key=? key "right") (make-posn 855 800)]
+    [(key=? key "right") PL_OFFSET_HEAL]
     ; if any other key is pressed, it returns the current player position
     [else                player-pos]))
 

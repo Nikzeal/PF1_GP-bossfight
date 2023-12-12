@@ -1,6 +1,7 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname on-tick) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+
 ;; LIBRARIES
 (require 2htdp/image)
 (require 2htdp/universe)
@@ -38,7 +39,7 @@
 ;; CODE
 (define (tick state)
   (cond
-    ; handles the rage transition
+    ; keep pushing the timer 
     [(and (< (appState-change-turn state) 117) (string=? (appState-s state) "rage"))
      (make-appState (appState-canvas state)
                     (appState-e state)
@@ -47,6 +48,7 @@
                     (appState-running? state)
                     (appState-movement state)
                     (add1 (appState-change-turn state)))]
+    ; stop and reset the timer and pass state to "boss"
      [(and (= (appState-change-turn state) 117) (string=? (appState-s state) "rage"))
      (make-appState (appState-canvas state)
                     (appState-e state)
@@ -55,36 +57,8 @@
                     (appState-running? state)
                     (appState-movement state)
                     0)]
-     ; check if the player has lost or win the game
-    [(or (string=? (appState-s state) "win") (string=? (appState-s state) "lost"))
-     (make-appState (appState-canvas state)
-                    (appState-e state)
-                    "end"
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state)
-                    (appState-change-turn state))]
-    ; check if the player is in the menu
-    [(string=? (appState-s state) "menu")
-     (make-appState (appState-canvas state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state)
-                    (appState-change-turn state))]
-    ; check if it is the boss turn   -> see boss-tick
-    [(and (< (appState-change-turn state) 1) (string=? (appState-s state) "boss"))
-      (make-appState (appState-canvas state)
-                     (make-entities
-                      (entities-player-lp (appState-e state))
-                      PL_BOX_POSITION
-                      (entities-enemies (appState-e state)))
-                     (appState-s state)
-                     (appState-boss state)
-                     (appState-running? state)
-                     (appState-movement state)
-                     (add1 (appState-change-turn state)))]
+    ; boss turn, make 30 ticks pass and position player at the center of the box
+    ; after 30 ticks the game starts
     [(and (< (appState-change-turn state) 30) (string=? (appState-s state) "boss"))
       (make-appState (appState-canvas state)
                      (make-entities
@@ -110,27 +84,20 @@
                      (appState-running? state)
                      (appState-movement state)
                      (add1 (appState-change-turn state)))]
-    ; change the turn to the player turn
+    ; use 1 tick to change the turn to the player turn and add 1 to the time to make it 500
     [(= (appState-change-turn state) 499)
      (make-appState (appState-canvas state)
                     (make-entities
                      (entities-player-lp (appState-e state))
-                     (make-posn 455 800)
+                     PL_OFFSET_ATTACK
                      '())
                     "player"
                     (appState-boss state)
                     (appState-running? state)
                     "still"
                     (add1 (appState-change-turn state)))]
-    ; let the player decide which action choose
-    [else
-     (make-appState (appState-canvas state)
-                    (appState-e state)
-                    (appState-s state)
-                    (appState-boss state)
-                    (appState-running? state)
-                    (appState-movement state)
-                    (appState-change-turn state))]))
+    ; all the other states: menu, player 
+    [else state]))
 
 ;;; ======== COLLISION ========
 
@@ -187,8 +154,7 @@
 ;; CODE
 (define (end! state boss-lp player-lp)
   (cond
-    [(= boss-lp 0)   "win"]
-    [(= player-lp 0) "lost"]
+    [(or (= boss-lp 0) (= player-lp 0))  "end"]
     [else state]))
 
 ;;; ======== BOSS-TICK ========
@@ -216,6 +182,7 @@
 ;; CODE
 (define (boss-tick state)
   (cond
+    [(< (appState-change-turn state) 1) PL_BOX_POSITION]
     ; check if the player is inside the box  -> see boss-tick-box
     [(and (< (+ PL_BOX_LEFT (/ PL_WIDTH 2))
              (posn-x (entities-player-pos (appState-e state)))
@@ -339,10 +306,13 @@
 ;; CODE
 (define (entity-move state)
   (cond
+    ; if the entities are empty build a list
     [(empty? (entities-enemies (appState-e state)))
       (build-list 7 (lambda (n) (make-posn (- (random 200) 220) (+ (random 300) 450))))]
+    ; check for collisions and remove the collided entities from the list
     [(ormap (lambda (n) (>= 37 (distance n (entities-player-pos (appState-e state))))) (entities-enemies (appState-e state)))
      (filter (lambda (n) (< 37 (distance n (entities-player-pos (appState-e state))))) (entities-enemies (appState-e state)))]
+    ; move the entities
     [else
      (entity-reset (entities-enemies (appState-e state)) (appState-boss state))]))
 
@@ -365,13 +335,16 @@
 ;; CODE
 (define (entity-reset en boss)
   (cond
+    ; make entities move at random speed if the phase is rage
     [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) (<= boss 5))
       (map (lambda (n)
              (make-posn (+ (posn-x n) (* (random 500 5000) FRAME)) (+ (posn-y n) (* (random -200 300) FRAME)) ))
            en)]
+    ; make entities move at regular speed if the phase is normal
     [(and (ormap (lambda (n) (<= 0 (posn-x n) 1440)) en) (> boss 5))
       (map (lambda (n)
              (make-posn (+ (posn-x n) (* ENTITY_SPEED FRAME)) (posn-y n) ) )
            en)]
+    ; spawn entities to the left if their positions are not inside the screen
     [else
       (build-list 7 (lambda (n) (make-posn (random 200) (+ (random 300) 450))))]))

@@ -1,6 +1,7 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-advanced-reader.ss" "lang")((modname data) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #t #t none #f () #f)))
+
 ;; LIBRARIES
 (require 2htdp/image)
 (require racket/base)
@@ -20,6 +21,8 @@
 (define HEAL_BOX_SEL (bitmap/file "../resources/HEAL.png"))
 (define ATK_BOX_POSITION (make-posn 500 800))
 (define HEAL_BOX_POSITION (make-posn 900 800))
+(define PL_OFFSET_ATTACK (make-posn (- (posn-x ATK_BOX_POSITION)  45) (posn-y ATK_BOX_POSITION)))
+(define PL_OFFSET_HEAL   (make-posn (- (posn-x HEAL_BOX_POSITION) 45) (posn-y HEAL_BOX_POSITION)))
 (define PLAY_UNS (scale 0.3 (bitmap/file "../resources/play-white.png")))
 (define PLAY_SEL (scale 0.3 (bitmap/file "../resources/play-yellow.png")))
 (define PLAY_TEXT_POS (make-posn 720 400))
@@ -78,88 +81,6 @@
 
 ; HP sprites
 (define PL_HP (scale 0.65 (bitmap/file "../resources/heart.png")))
-(define HP_SPRITE_10 (above (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)
-       (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)))
-
-(define HP_SPRITE_9 (above (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)
-       (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)))
-
-(define HP_SPRITE_8 (above (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)
-       (beside
-          PL_HP
-          PL_HP
-          PL_HP)))
-
-(define HP_SPRITE_7 (above (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)
-       (beside
-          PL_HP
-          PL_HP)))
-
-(define HP_SPRITE_6 (above (beside
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP)
-          PL_HP))
-
-(define HP_SPRITE_5
-    (beside
-       PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-          PL_HP))
-
-(define HP_SPRITE_4 
-    (beside
-       PL_HP
-          PL_HP
-          PL_HP
-          PL_HP
-       ))
-
-(define HP_SPRITE_3
-    (beside
-       PL_HP
-          PL_HP
-          PL_HP
-       ))
-
-(define HP_SPRITE_2
-    (beside PL_HP
-          PL_HP))
-
-(define HP_SPRITE_1 PL_HP)
 
 ; Ball (entity)
 (define BALL_SPRITE  (scale 0.2 (bitmap/file "../resources/ball.png")))
@@ -171,8 +92,8 @@
    (list PL_SPRITE
          BS_SPRITE_N
          PL_BOX
-         HP_SPRITE_5
-         HP_SPRITE_10
+         (beside PL_HP PL_HP PL_HP PL_HP PL_HP)
+         (above (beside PL_HP PL_HP PL_HP PL_HP PL_HP) (beside PL_HP PL_HP PL_HP PL_HP PL_HP PL_HP))
          ATK_BOX_UNS
          HEAL_BOX_UNS)
    (list INITIAL_PLAYER_POS
@@ -211,7 +132,7 @@
 (define E3  (make-entities 5 (make-posn 500 400)
                               (build-list 1 (lambda (n) (make-posn (random 400) (random 300)))) ))
 (define E4  (make-entities 5 INITIAL_PLAYER_POS
-                              (build-list 7 (lambda (n) (make-posn (random 200) (+ 450 (random 300))))) ))
+                              '() ))
 
 ;--------------------------------------------------------------------------------------
 
@@ -251,7 +172,7 @@
 (define-struct appState [canvas e s boss running? movement change-turn])
 
 ;; Data examples
-(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 10  #true "still" 0))
-(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 10 #true "still" 0))
+(define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 1  #true "still" 0))
+(define GAME_APP_STATE (make-appState BACKGROUND E4   "boss" 1 #true "still" 0))
 (define WIN_APP_STATE  (make-appState BACKGROUND NONE  "win" 0  #false "still" 0))
 (define LOST_APP_STATE (make-appState BACKGROUND NONE "lost" 0  #false "still" 0))
