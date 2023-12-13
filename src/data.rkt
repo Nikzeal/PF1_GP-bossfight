@@ -107,7 +107,7 @@
    BACKGROUND))
 
 ; Empty structure
-(define-struct none [])
+(define-struct none [] #:transparent)
 (define NONE (make-none))
 
 ;--------------------------------------------------------------------------------------
@@ -120,10 +120,12 @@
 ;      - '()
 ;      - (cons Posn List<Posn>)
 ; interpretation: the player's life points, position and the entities positions 
-(define-struct entities [player-lp player-pos enemies])
+(define-struct entities [player-lp player-pos enemies] #:transparent)
 
 ;; Data examples
 (define PLAYER  (make-entities 5 (make-posn 500 400) '() ))
+(define PLAYER_ATK  (make-entities 5 PL_OFFSET_ATTACK '() ))
+(define PLAYER_HEAL (make-entities 5 PL_OFFSET_HEAL '() ))
 (define MENU  (make-entities 5 (make-posn 720 400) '() ))
 (define E1 (make-entities 5 (make-posn 500 400)
                               (build-list 5 (lambda (n) (make-posn (random 400) (random 300)))) ))
@@ -169,7 +171,7 @@
 ;                is set to #false and the application quits. `movement` describes the current direction of the player `e-entities player`.
 ;                `change-turn` is a counter to keep track of the tick to call a specific function when 20 seconds pass.
 ;                `enemies-count` keeps track of the number of entities in the state.
-(define-struct appState [canvas e s boss running? movement change-turn])
+(define-struct appState [canvas e s boss running? movement change-turn] #:transparent)
 
 ;; Data examples
 (define MENU_APP_STATE (make-appState BACKGROUND MENU "menu" 1  #true "still" 0))
