@@ -11,17 +11,39 @@
 (require "on-tick.rkt")
 (provide drawAppState)
 
-;--------------------------------------------------------------------------------------
+;;; ======== DISPLAY-END ========
 
+;; INPUT/OUTPUT
+; signature: display-end appState String -> Image
+; purpose:   draws certain images based on some conditions regarding the appstate `as` and the selector string `for`
+; header:    (define (display-end as for) PL_SPRITE)
 
+;; EXAMPLES
+(check-expect (display-end (make-appState BACKGROUND PLAYER "boss" 6 #true "still" 10) "player") PL_SPRITE)
+(check-expect (display-end (make-appState BACKGROUND PLAYER "boss" 0 #true "still" 10) "player") (rectangle 0 0 "solid" "transparent"))
+
+;; TEMPLATE
+;(define (display-end as for)
+;  (cond
+;    [(and (string=? for "player")
+;          (and (not (= (entities-player-lp (appState-e as)) 0))
+;               (not (= (appState-boss as) 0)))) ... PL_SPRITE ...]
+;    [(and (string=? for "entities")
+;          (and (not (= (entities-player-lp (appState-e as)) 0))
+;               (not (= (appState-boss as) 0)))) ... state ...]
+;    [(and (string=? for "game") (= (entities-player-lp (appState-e as)) 0))  ... GAMEOVER ... QUIT ... RETRY]
+;    [(and (string=? for "game") (= (appState-boss as) 0)) ... WIN ... QUIT ... RETRY]
+;    [else ... (rectangle 0 0 "solid" "transparent") ...]))
+
+;; CODE
 (define (display-end as for)
   (cond
-    ;
+    ; checks if the player and the boss are both alive and displays the player sprite if so
     [(and (string=? for "player")
           (and (not (= (entities-player-lp (appState-e as)) 0))
                (not (= (appState-boss as) 0))))
      PL_SPRITE]
-    ;
+    ; checks if the player and the boss are both alive and displays the list of entities if so
     [(and (string=? for "entities")
           (and (not (= (entities-player-lp (appState-e as)) 0))
                (not (= (appState-boss as) 0))))
@@ -29,12 +51,13 @@
           (build-list (length (entities-enemies (appState-e as))) (lambda (n) BALL_SPRITE))
           (entities-enemies (appState-e as))
           (rectangle 1440 900 "solid" "transparent"))]
-    ;
+    ; checks if the player is dead and displays the game over screen if so
     [(and (string=? for "game") (= (entities-player-lp (appState-e as)) 0))
      (above GAME_OVER (rectangle 20 20 "solid" "transparent") QUIT (rectangle 20 20 "solid" "transparent") RETRY)]
+    ; checks if the boss is dead and displays the win screen if so
     [(and (string=? for "game") (= (appState-boss as) 0))
      (above WIN (rectangle 20 20 "solid" "transparent") QUIT (rectangle 20 20 "solid" "transparent") RETRY)]
-    ;
+    ; just displays an empty image
     [else (rectangle 0 0 "solid" "transparent")]))
 
 ;;; ======== DRAW-ENTITIES ========
@@ -44,26 +67,53 @@
 ; purpose:   draws the appstate on the boss' turn with entities
 ; header:    (define (draw-entities as) INITIAL_CANVAS)
 
+;; EXAMPLES
+(check-expect (draw-entities (make-appState BACKGROUND PLAYER_ENT "boss" 6 #true "still" 0))
+              (place-images
+               (list
+                PL_SPRITE
+                BS_SPRITE_N
+                PL_BOX
+                (beside PL_HP PL_HP PL_HP PL_HP PL_HP)
+                (above (beside PL_HP PL_HP PL_HP PL_HP PL_HP) PL_HP)
+                ATK_BOX_UNS
+                HEAL_BOX_UNS
+                ; entities
+                (place-images
+                 (build-list (length (entities-enemies PLAYER_ENT)) (lambda (n) BALL_SPRITE))
+                 (entities-enemies PLAYER_ENT)
+                 (rectangle 1440 900 "solid" "transparent"))
+                (rectangle 0 0 "solid" "transparent")
+                )
+               (list
+                (entities-player-pos PLAYER_ENT)
+                BS_N_POSITION
+                PL_BOX_POSITION
+                LP_POSITION_PL
+                LP_POSITION_BO
+                ATK_BOX_POSITION
+                HEAL_BOX_POSITION
+                (make-posn 720 450)
+                (make-posn 700 600)
+                )
+               BACKGROUND))
+
 ;; TEMPLATE
 ; (define (draw-entities as)
-;   ... (draw-lp (player-hp (appState-p as))) ...
-;   ... (draw-lp (appState-boss as))          ...
-;   ... (entities-sprites (appState-e as)))   ...
-;   ... (entities-positions (appState-e as))) ...
-;   ... PL_SPRITE                             ...
-;   ... BS_SPRITE_N                           ...
-;   ... BS_SPRITE_R                           ...
-;   ... PL_BOX                                ...
-;   ... ATK_BOX                               ...
-;   ... HEAL_BOX
-;   ... (player-position (appState-p as))     ...
-; )
+;   ... as           ...
+;   ... PL_SPRITE    ...
+;   ... BS_SPRITE_N  ...
+;   ... BS_SPRITE_R  ...
+;   ... PL_BOX       ...
+;   ... ATK_BOX      ...
+;   ... HEAL_BOX     ... )
 
 ;; CODE
 (define (draw-entities as)
    (place-images
     (list
      (display-end as "player")
+     ; check which of the boss sprite to display (normal or rage)
      (if (> (appState-boss as) 5)
          BS_SPRITE_N
          BS_SPRITE_R)
@@ -96,22 +146,27 @@
 ;; INPUT/OUTPUT
 ; signature: draw-lp: Number -> Image
 ; purpose:   draws a certain `n` of images to display 
-; header:    (define (draw-lp n) HP_SPRITE_PL_INITIAL)
+; header:    (define (draw-lp n) PL_HP)
+
+;; EXAMPLES
+(check-expect (draw-lp 6) (above (beside PL_HP PL_HP PL_HP PL_HP PL_HP) PL_HP))
+(check-expect (draw-lp 0) (rectangle 0 0 "solid" "transparent"))
+(check-expect (draw-lp 20) (rectangle 0 0 "solid" "transparent"))
 
 ;; TEMPLATE
 ; (define (draw-lp n)
 ;   (cond
-;     [(= n 1)  ...]
-;     [(= n 2)  ...]
-;     [(= n 3)  ...]
-;     [(= n 4)  ...]
-;     [(= n 5)  ...]
-;     [(= n 6)  ...]
-;     [(= n 7)  ...]
-;     [(= n 8)  ...]
-;     [(= n 9)  ...]
-;     [(= n 10) ...]
-;     [else     ...]))
+;     [(= n 1)  ...PL_HP...]
+;     [(= n 2)  ...PL_HP...]
+;     [(= n 3)  ...PL_HP...]
+;     [(= n 4)  ...PL_HP...]
+;     [(= n 5)  ...PL_HP...]
+;     [(= n 6)  ...PL_HP...]
+;     [(= n 7)  ...PL_HP...]
+;     [(= n 8)  ...PL_HP...]
+;     [(= n 9)  ...PL_HP...]
+;     [(= n 10) ...PL_HP...]
+;     [else     ...PL_HP...]))
 
 ;; CODE
 (define (draw-lp n)
@@ -133,23 +188,39 @@
 
 ;; INPUT/OUTPUT
 ; signature: draw-turn: appState -> Image
-; purpose:   draws the appstate on the boss' or player's turn
-; header:    (define (drawTurn as) INITIAL_CANVAS)
+; purpose:   draws the appstate on the boss' or player's turn without entities
+; header:    (define (draw-turn as) INITIAL_CANVAS)
 
+;; EXAMPLES
+(check-expect (draw-turn (make-appState BACKGROUND PLAYER_ATK "player" 6 #true "still" 0))
+              (place-images
+               (list
+                PL_SPRITE
+                BS_SPRITE_N
+                PL_BOX
+                (beside PL_HP PL_HP PL_HP PL_HP PL_HP)
+                (above (beside PL_HP PL_HP PL_HP PL_HP PL_HP) PL_HP)
+                ATK_BOX_SEL
+                HEAL_BOX_UNS
+                )
+               (list
+                (entities-player-pos PLAYER_ATK)
+                BS_N_POSITION
+                PL_BOX_POSITION
+                LP_POSITION_PL
+                LP_POSITION_BO
+                ATK_BOX_POSITION
+                HEAL_BOX_POSITION)
+               BACKGROUND))
 ;; TEMPLATE
 ; (define (draw-turn as)
-;   ... (draw-lp (player-hp (appState-p as))) ...
-;   ... (draw-lp (appState-boss as))          ...
-;   ... (entities-sprites (appState-e as)))   ...
-;   ... (entities-positions (appState-e as))) ...
-;   ... PL_SPRITE                             ...
-;   ... BS_SPRITE_N                           ...
-;   ... BS_SPRITE_R                           ...
-;   ... PL_BOX                                ...
-;   ... ATK_BOX                               ...
-;   ... HEAL_BOX
-;   ... (player-position (appState-p as))     ...
-; )
+;   ... as           ...
+;   ... PL_SPRITE    ...
+;   ... BS_SPRITE_N  ...
+;   ... BS_SPRITE_R  ...
+;   ... PL_BOX       ...
+;   ... ATK_BOX      ...
+;   ... HEAL_BOX     ... )
 
 ;; CODE
 (define (draw-turn as)
@@ -184,6 +255,21 @@
 ; signature: draw-menu: appState -> Image
 ; purpose:   draws the appState in the game menu
 ; header:    (define (draw-menu as) BACKGROUND)
+
+;; EXAMPLES
+(check-expect (draw-menu (make-appState BACKGROUND PLAYER_PLAY "menu" 10 #true "still" 0))
+              (place-images
+               (list
+                PLAY_SEL    
+                CREDITS_UNS
+                ENTER
+                )
+               (list
+                PLAY_TEXT_POS
+                CREDITS_TEXT_POS
+                (make-posn 720 860)
+                )
+               BACKGROUND))
 
 ;; TEMPLATE
 ; (define (draw-menu as)
@@ -222,6 +308,22 @@
 ; purpose:   adds the credits to the game main menu
 ; header:    (define (draw-credits as) BACKGROUND)
 
+
+;; EXAMPLES
+(check-expect (draw-credits (make-appState BACKGROUND PLAYER_CREDITS "credits" 10 #true "still" 0))
+              (place-images
+               (list
+                PLAY_UNS    
+                CREDITS_SEL
+                NAMES
+                )
+               (list
+                PLAY_TEXT_POS
+                CREDITS_TEXT_POS
+                (make-posn 720 700)
+                )
+               BACKGROUND))
+
 ;; TEMPLATE
 ; (define (draw-credits as)
 ;   ... PLAY_SEL         ...
@@ -256,8 +358,16 @@
 
 ;; INPUT/OUTPUT
 ; signature: draw-rage: appState -> Image
-; purpose:   create a transition gif for the rage mode
+; purpose:   create a transition gif for the rage mode by switching image every tot ticks
 ; header:    (define (draw-rage as) BACKGROUND)
+
+;; EXAMPLES
+(check-expect (draw-rage (make-appState BACKGROUND PLAYER "rage" 5 #true "still" 0))
+                         (place-image RG1  720 450 BACKGROUND))
+(check-expect (draw-rage (make-appState BACKGROUND PLAYER "rage" 5 #true "still" 70))
+                         (place-image RG8  720 450 BACKGROUND))
+(check-expect (draw-rage (make-appState BACKGROUND PLAYER "rage" 5 #true "still" 118))
+                         (rectangle 0 0 "solid" "transparent"))
 
 ;; TEMPLATE
 ; (define (draw-rage as)
@@ -303,35 +413,39 @@
 ; header:    (define (drawAppState as) BACKGROUND)
 
 ;; EXAMPLES
-(check-expect (drawAppState INITIAL_APP_STATE) INITIAL_CANVAS)
-; (check-expect (drawAppState (make-appState BACKGROUND PL1 BALL "boss" 8 #true "still"))
-;               (place-images
-;               (list PL_SPRITE
-;                      BS_SPRITE_N
-;                      PL_BOX
-;                      (draw-lp (player-hp PL1))
-;                      (draw-lp 8)
-;                      placeholder_rec
-;                      placeholder_rec)
-;                (list (player-position PL1)
-;                      BS_SPRITE_POSITION
-;                      PL_BOX_POSITION
-;                      LP_POSITION_PL
-;                      LP_POSITION_BO
-;                      ATK_BOX_POSITION
-;                      HEAL_BOX_POSITION)
-;               BACKGROUND))
+(check-expect (drawAppState (make-appState BACKGROUND PLAYER "rage" 5 #true "still" 0))
+                         (place-image RG1  720 450 BACKGROUND))
+(check-expect (drawAppState (make-appState BACKGROUND PLAYER_ATK "player" 6 #true "still" 0))
+              (place-images
+               (list
+                PL_SPRITE
+                BS_SPRITE_N
+                PL_BOX
+                (beside PL_HP PL_HP PL_HP PL_HP PL_HP)
+                (above (beside PL_HP PL_HP PL_HP PL_HP PL_HP) PL_HP)
+                ATK_BOX_SEL
+                HEAL_BOX_UNS
+                )
+               (list
+                (entities-player-pos PLAYER_ATK)
+                BS_N_POSITION
+                PL_BOX_POSITION
+                LP_POSITION_PL
+                LP_POSITION_BO
+                ATK_BOX_POSITION
+                HEAL_BOX_POSITION)
+               BACKGROUND))
 
 ;; TEMPLATE
 ; (define (drawAppState as)
 ;   (cond
-;     [(string=? (appState-s as) "menu")               ...]
-;     [(string=? (appState-s as) "credits")            ...]
-;     [(string=? (appState-s as) "rage")               ...]
+;     [(string=? (appState-s as) "menu")             ...as...]
+;     [(string=? (appState-s as) "credits")          ...as...]
+;     [(string=? (appState-s as) "rage")             ...as...]
 ;     [(and (empty? (entities-enemies (appState-e as)))
 ;           (or (string=? (appState-s as) "boss")
-;               (string=? (appState-s as) "player")))  ...]
-;     [else (draw-entities as)]))
+;               (string=? (appState-s as) "player"))) ...as...]
+;     [else                                           ...as...]))
 
 ;; CODE 
 (define (drawAppState as)
